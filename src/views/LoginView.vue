@@ -144,11 +144,12 @@
 <script setup>
 
 import '@/assets/css/login.css'
-import { login } from '@/services/authService'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const correo = ref('')
 const clave = ref('')
@@ -256,64 +257,37 @@ function ocultarSugerencias() {
 }
 
 async function iniciarSesion() {
+  if (isLoading.value) return
 
-    if (!correo.value || !clave.value) {
-        mensajeError.value = 'Por favor completa todos los campos'
-        return
+  isLoading.value = true
+  mensajeError.value = ''
+
+  try {
+    // 1. Esperamos a que el store procese el login y guarde al usuario
+    await authStore.login(correo.value, clave.value)
+    saveEmailToHistory(correo.value)
+
+    // 2. Obtenemos el rol de Pinia y lo aseguramos en mayúsculas
+    const rolUsuario = authStore.usuario?.rol?.toUpperCase()
+
+    // 3. Evaluamos el rol para decidir la ruta de destino
+    if (rolUsuario === 'ADMIN') {
+      router.push('/dashboard')
+    } else if (rolUsuario === 'MESERO') {
+      router.push('/mesas')
+    } else {
+      // Ruta por defecto por si en el futuro agregas más roles (ej. CAJERO)
+      router.push('/dashboard')
     }
 
-    if (!correo.value.includes('@')) {
-        mensajeError.value = 'Por favor ingresa un correo válido'
-        return
-    }
-
-    isLoading.value = true
-    mensajeError.value = ''
-
-    try {
-
-        const data = await login(
-            correo.value,
-            clave.value
-        )
-
-        // 1. ¡NUEVO! Guardamos el token JWT en el almacenamiento local
-        if (data.token) {
-            localStorage.setItem('token', data.token)
-        }
-
-        // 2. Guardamos los datos del usuario como ya lo hacías
-        localStorage.setItem(
-            'usuario',
-            JSON.stringify(data.usuario)
-        )
-
-        localStorage.setItem(
-            'loginDateTime',
-            new Date().toISOString()
-        )
-
-        saveEmailToHistory(
-            correo.value
-        )
-
-        router.push('/dashboard')
-
-    } catch (error) {
-
-        console.error(error)
-
-        // Mejora opcional: Mostrar el mensaje de error exacto que envía Spring Boot
-        mensajeError.value = error.response?.data?.message || 'Credenciales inválidas. Intenta de nuevo.'
-
-    } finally {
-
-        isLoading.value = false
-
-    }
-
+  } catch (error) {
+    mensajeError.value =
+      error.response?.data?.message ||
+      'Error al iniciar sesión. Por favor, verifica tus credenciales.'
+  } finally {
+    isLoading.value = false
+  }
 }
-
 onMounted(() => {
 
     loadEmailHistory()

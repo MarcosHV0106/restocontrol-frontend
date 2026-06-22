@@ -93,9 +93,11 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import '@/assets/css/navbar.css'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const menuAbierto = ref(false)
 
@@ -123,7 +125,7 @@ onBeforeUnmount(() => {
 })
 
 function cerrarSesion() {
-    localStorage.clear()
+    authStore.logout()
     router.push('/login')
 }
 </script>

@@ -14,31 +14,17 @@
         <div class="sidebar-nav-container overflow-auto p-3 flex-grow-1">
             <ul class="nav nav-pills flex-column mb-auto gap-1">
 
-                <li class="nav-item">
+                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
                     <RouterLink to="/dashboard" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-grid-1x2 me-3 fs-5"></i>
                         <span>Dashboard</span>
                     </RouterLink>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
                     <RouterLink to="/menu" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-tags me-3 fs-5"></i>
                         <span>Menú y Categorías</span>
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item">
-                    <RouterLink to="/pedidos" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-receipt me-3 fs-5"></i>
-                        <span>Pedidos</span>
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item">
-                    <RouterLink to="/usuarios" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-people me-3 fs-5"></i>
-                        <span>Usuarios y Roles</span>
                     </RouterLink>
                 </li>
 
@@ -51,7 +37,21 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item mt-4">
+                <li class="nav-item">
+                    <RouterLink to="/pedidos" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-receipt me-3 fs-5"></i>
+                        <span>Pedidos</span>
+                    </RouterLink>
+                </li>
+
+                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                    <RouterLink to="/usuarios" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-people me-3 fs-5"></i>
+                        <span>Usuarios y Roles</span>
+                    </RouterLink>
+                </li>
+
+                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
                     <RouterLink to="/configuracion" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-gear me-3 fs-5"></i>
                         <span>Configuración</span>
@@ -72,5 +72,14 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/authStore'
+import { storeToRefs } from 'pinia'
 import '@/assets/css/sidebar.css'
+
+// 1. Instanciamos el store de autenticación
+const authStore = useAuthStore()
+
+// 2. Extraemos el usuario de forma reactiva para que el menú
+// se actualice instantáneamente si cambia la sesión
+const { usuario: usuarioActual } = storeToRefs(authStore)
 </script>
