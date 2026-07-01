@@ -74,10 +74,10 @@
                           <div
                               v-for="mesa in mesasFiltradas"
                               :key="mesa.idMesa"
-                              :class="['mesa-card-v2', mesa.estadoMesa, { 'active': mesaSeleccionada?.idMesa === mesa.idMesa }]"
+                              :class="['mesa-card-v2', mesa.estadoMesa.descripcion, { 'active': mesaSeleccionada?.idMesa === mesa.idMesa }]"
                               @click="seleccionarMesa(mesa)"
                           >
-                              <div class="mesa-badge-status">{{ mesa.estadoMesa }}</div>
+                              <div class="mesa-badge-status">{{ mesa.estadoMesa.descripcion }}</div>
 
                               <div class="mesa-body">
                                   <div class="mesa-circle d-flex flex-column align-items-center justify-content-center">
@@ -121,17 +121,17 @@
                                         <i class="bi bi-pencil me-2"></i>Editar Datos de Mesa
                                     </button>
 
-                                    <button v-if="mesaSeleccionada.estadoMesa === 'libre'"
+                                    <button v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'"
                                             class="btn btn-primary-resto py-2 text-white" @click="abrirApertura">
                                         Aperturar Mesa
                                     </button>
 
-                                    <button v-if="mesaSeleccionada.estadoMesa === 'ocupada' || mesaSeleccionada.estadoMesa === 'cobrar'"
+                                    <button v-if="mesaSeleccionada.estadoMesa.descripcion  === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar'"
                                             class="btn btn-success py-2" @click="cobrarPedidoAction">
                                         Generar Cobro
                                     </button>
 
-                                    <button class="btn btn-light border py-2" v-if="mesaSeleccionada.estadoMesa === 'libre'" @click="abrirUnion">
+                                    <button class="btn btn-light border py-2" v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'" @click="abrirUnion">
                                         Unir con otra mesa
                                     </button>
                                 </div>
@@ -264,7 +264,7 @@ const mesasFiltradas = computed(() => {
 
         const matchBusqueda = !filtros.value.busqueda || m.numeroMesa.toString().includes(filtros.value.busqueda);
         const matchPiso = !filtros.value.piso || m.piso == filtros.value.piso;
-        const matchEstado = !filtros.value.estado || m.estadoMesa === filtros.value.estado;
+        const matchEstado = !filtros.value.estado || m.estadoMesa.descripcion === filtros.value.estado;
         return matchBusqueda && matchPiso && matchEstado;
     });
 });
@@ -274,10 +274,10 @@ const pisos = computed(() => [...new Set(entidades.value.filter(m => !m.eliminad
 const resumenCalculado = computed(() => {
     const activas = entidades.value.filter(m => !m.eliminado);
     return {
-        libres: activas.filter(m => m.estadoMesa === 'libre').length,
-        ocupadas: activas.filter(m => m.estadoMesa === 'ocupada').length,
-        reservadas: activas.filter(m => m.estadoMesa === 'reservada').length,
-        cobrar: activas.filter(m => m.estadoMesa === 'cobrar').length
+        libres: activas.filter(m => m.estadoMesa.descripcion === 'libre').length,
+        ocupadas: activas.filter(m => m.estadoMesa.descripcion === 'ocupada').length,
+        reservadas: activas.filter(m => m.estadoMesa.descripcion === 'reservada').length,
+        cobrar: activas.filter(m => m.estadoMesa.descripcion === 'cobrar').length
     };
 });
 
@@ -291,7 +291,7 @@ const listar = async () => {
         for (let mesa of data) {
             try {
                 // Si la mesa está libre, no hacemos fetch para ahorrar red
-                if(mesa.estadoMesa !== 'libre') {
+                if(mesa.estadoMesa.descripcion !== 'libre') {
                      const resPed = await api.get(`/pedidos/mesa/${mesa.idMesa}`);
                      mesa.pedido = resPed.data ? resPed.data : null;
                 } else {
