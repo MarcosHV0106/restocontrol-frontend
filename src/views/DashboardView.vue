@@ -1,58 +1,32 @@
 <template>
+  <div class="layout">
 
-    <div class="layout">
+    <Sidebar />
 
-        <Sidebar />
+    <div class="main-content">
 
-        <div class="main-content">
+      <Navbar />
 
-            <Navbar />
+      <div class="dashboard-container">
 
-        <div class="main-container">
-                    <div class="info-card">
-                        <div class="coming-soon-badge">
-                            <i class="bi bi-star-fill me-1"></i> Próximamente
-                        </div>
-<div class="icon-wrapper">
-    <i class="bi bi-rocket-takeoff"></i>
-</div>
-                        <h1>Módulo en Desarrollo</h1>
-                        <p>Estamos trabajando intensamente para perfeccionar esta funcionalidad y ofrecerte las mejores herramientas de gestión gastronómica.</p>
+        <h2 class="dashboard-title">
+          <i class="bi bi-bar-chart-fill"></i>
+          Dashboard Ejecutivo
+        </h2>
 
-                        <div class="timeline-feature">
-                            <i class="bi bi-hourglass-split"></i>
-                            <span>Estará disponible en breve</span>
-                        </div>
+        <iframe
+            title="RestoControlReportes"
+            class="powerbi-frame"
+            src="https://app.powerbi.com/view?r=eyJrIjoiMjRiNjRiZDgtZmQ2YS00YzdhLWE0M2YtOTBjYWQwYjhhYmZkIiwidCI6ImM0YTY2YzM0LTJiYjctNDUxZi04YmUxLWIyYzI2YTQzMDE1OCIsImMiOjR9"
+            frameborder="0"
+            allowfullscreen>
+        </iframe>
 
-                        <div class="features-list">
-                            <div class="feature-item">
-                                <i class="bi bi-lightning-fill"></i>
-                                <span>Rendimiento</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="bi bi-shield-check"></i>
-                                <span>Seguridad</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="bi bi-sliders"></i>
-                                <span>Personalizable</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="bi bi-speedometer"></i>
-                                <span>Optimizado</span>
-                            </div>
-                        </div>
-
-                        <div class="badge-avance">
-                            <i class="fa-solid fa-rocket"></i> Disponible desde el Avance #4
-                        </div>
-                    </div>
-        </div>
-
-        </div>
+      </div>
 
     </div>
 
+  </div>
 </template>
 
 <script setup>
@@ -61,5 +35,6 @@ import Sidebar from '@/components/SidebarComponent.vue'
 import Navbar from '@/components/NavbarComponent.vue'
 
 import '@/assets/css/disponible.css'
+import '@/assets/css/dashboard.css'
 
 </script>
