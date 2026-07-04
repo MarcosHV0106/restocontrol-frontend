@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 import LoginView from '@/views/LoginView.vue'
+import ActivarCuentaView from '@/views/ActivarCuentaView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import MenuView from '@/views/MenuView.vue'
 import UsuarioView from '@/views/UsuarioView.vue'
@@ -12,6 +13,8 @@ import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', name: 'login', component: LoginView, meta: { requiresGuest: true } },
+    { path: '/activar-cuenta', redirect: '/login' },
+    { path: '/activar-cuenta/:token', name: 'activar-cuenta', component: ActivarCuentaView },
 
     // Rutas exclusivas para ADMIN
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },

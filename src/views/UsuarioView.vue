@@ -49,6 +49,7 @@
                                         <th class="ps-4 py-3">Nombre</th>
                                         <th class="py-3">Correo</th>
                                         <th class="py-3">Rol</th>
+                                        <th class="py-3">Estado</th>
                                         <th class="pe-4 py-3 text-end">Acciones</th>
                                     </tr>
                                 </thead>
@@ -68,7 +69,19 @@
                                                 {{ usuario.rol ? usuario.rol.nombreRol : 'Sin rol' }}
                                             </span>
                                         </td>
+                                        <td class="py-3">
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  :class="claseEstadoCuenta(usuario)">
+                                                {{ obtenerEstadoCuenta(usuario) }}
+                                            </span>
+                                        </td>
                                         <td class="pe-4 py-3 text-end">
+                                            <button v-if="obtenerEstadoCuenta(usuario) === 'PENDIENTE'"
+                                                    class="btn btn-sm text-muted p-1 me-1"
+                                                    @click="reenviarInvitacion(usuario)"
+                                                    title="Reenviar invitacion">
+                                                <i class="bi bi-envelope fs-5"></i>
+                                            </button>
                                             <button class="btn btn-sm text-muted p-1 me-1"
                                                     @click="abrirEditarUsuario(usuario)"
                                                     title="Editar usuario">
@@ -184,13 +197,13 @@
                                 <input type="email" class="form-control px-3 py-2" id="correoUsuario" v-model="nuevoUsuario.correo" style="border-radius: 8px; border: 1px solid #e2d9cf; box-shadow: none;">
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div v-if="modoEdicionUsuario" class="col-md-6 mb-3">
                                     <label for="claveUsuario" class="form-label fw-medium text-dark mb-1" style="font-size: 0.9rem;">
-                                        {{ modoEdicionUsuario ? 'Nueva clave' : 'Clave' }}
+                                        Nueva clave
                                     </label>
-                                    <input type="password" class="form-control px-3 py-2" id="claveUsuario" v-model="nuevoUsuario.clave" :placeholder="modoEdicionUsuario ? 'Opcional' : ''" style="border-radius: 8px; border: 1px solid #e2d9cf; box-shadow: none;">
+                                    <input type="password" class="form-control px-3 py-2" id="claveUsuario" v-model="nuevoUsuario.clave" placeholder="Opcional" style="border-radius: 8px; border: 1px solid #e2d9cf; box-shadow: none;">
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div :class="modoEdicionUsuario ? 'col-md-6 mb-3' : 'col-12 mb-3'">
                                     <label for="rolUsuario" class="form-label fw-medium text-dark mb-1" style="font-size: 0.9rem;">Rol</label>
                                     <select class="form-select px-3 py-2" id="rolUsuario" v-model="nuevoUsuario.idRol" style="border-radius: 8px; border: 1px solid #e2d9cf; box-shadow: none;">
                                         <option value="">Seleccione un rol</option>
@@ -200,6 +213,9 @@
                                     </select>
                                 </div>
                             </div>
+                            <p v-if="!modoEdicionUsuario" class="text-muted small mb-0">
+                                Se enviara un enlace al correo para que el usuario cree su contrasena.
+                            </p>
                         </form>
                     </div>
 
@@ -208,7 +224,7 @@
                             Cancelar
                         </button>
                         <button type="button" class="btn text-white w-100 py-2 fw-medium" @click="guardarUsuario" style="background-color: var(--brand-color); border-radius: 8px; font-size: 0.95rem;">
-                            {{ modoEdicionUsuario ? 'Guardar Cambios' : 'Registrar' }}
+                            {{ modoEdicionUsuario ? 'Guardar Cambios' : 'Registrar y enviar invitacion' }}
                         </button>
                     </div>
                 </div>
@@ -291,11 +307,13 @@ const usuariosFiltrados = computed(() => {
 
     return usuarios.value.filter(usuario => {
         const rol = usuario.rol ? usuario.rol.nombreRol : '';
+        const estado = obtenerEstadoCuenta(usuario);
         return [
             usuario.nombre,
             usuario.apellido,
             usuario.correo,
-            rol
+            rol,
+            estado
         ].some(valor => (valor || '').toLowerCase().includes(termino));
     });
 });
@@ -313,6 +331,21 @@ const rolesFiltrados = computed(() => {
 });
 
 // --- Métodos de Carga (API) ---
+const obtenerEstadoCuenta = (usuario) => {
+    if (usuario.estadoCuenta) return usuario.estadoCuenta;
+    if (usuario.pendiente) return 'PENDIENTE';
+    if (usuario.disponible === false) return 'INACTIVO';
+    return 'ACTIVO';
+};
+
+const claseEstadoCuenta = (usuario) => {
+    const estado = obtenerEstadoCuenta(usuario);
+
+    if (estado === 'PENDIENTE') return 'badge-soft-orange';
+    if (estado === 'INACTIVO') return 'text-bg-secondary';
+    return 'badge-soft-blue';
+};
+
 const cargarUsuarios = async () => {
     try {
         usuarios.value = await usuarioService.obtenerUsuarios();
@@ -392,7 +425,6 @@ const validarUsuario = () => {
     if (!nuevoUsuario.value.apellido.trim()) return alert('El apellido del usuario es obligatorio.') && false;
     if (!nuevoUsuario.value.correo.trim()) return alert('El correo es obligatorio.') && false;
     if (!nuevoUsuario.value.correo.includes('@')) return alert('El correo no tiene un formato válido.') && false;
-    if (!modoEdicionUsuario.value && !nuevoUsuario.value.clave.trim()) return alert('La clave es obligatoria.') && false;
     if (!nuevoUsuario.value.idRol) return alert('El rol del usuario es obligatorio.') && false;
     return true;
 };
@@ -408,11 +440,13 @@ const guardarUsuario = async () => {
     };
 
     const clave = nuevoUsuario.value.clave.trim();
-    if (!modoEdicionUsuario.value || clave) {
+    if (modoEdicionUsuario.value && clave) {
         payload.clave = clave;
     }
 
     try {
+        const creandoUsuario = !modoEdicionUsuario.value;
+
         if (modoEdicionUsuario.value) {
             await usuarioService.actualizarUsuario(usuarioEditandoId.value, payload);
         } else {
@@ -421,6 +455,10 @@ const guardarUsuario = async () => {
 
         cerrarModal('usuarioModal');
         await cargarUsuarios();
+
+        if (creandoUsuario) {
+            alert('Usuario registrado. Se envio el enlace de activacion al correo.');
+        }
     } catch (error) {
         console.error('Error guardando usuario:', error);
         const mensaje = error.response?.data?.mensaje || error.response?.data?.message;
@@ -442,6 +480,21 @@ const eliminarUsuario = async (usuario) => {
 };
 
 // --- Gestión de Roles ---
+const reenviarInvitacion = async (usuario) => {
+    const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
+    if (!confirm(`Deseas reenviar la invitacion a "${nombreCompleto}"?`)) return;
+
+    try {
+        await usuarioService.reenviarActivacionUsuario(usuario.idUsuario);
+        await cargarUsuarios();
+        alert('Invitacion reenviada correctamente.');
+    } catch (error) {
+        console.error('Error reenviando invitacion:', error);
+        const mensaje = error.response?.data?.mensaje || error.response?.data?.message;
+        alert(mensaje || 'No se pudo reenviar la invitacion.');
+    }
+};
+
 const reiniciarModalRol = () => {
     modoEdicionRol.value = false;
     rolEditandoId.value = null;

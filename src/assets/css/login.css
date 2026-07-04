@@ -112,6 +112,56 @@
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
 }
 
+.activation-card {
+    max-width: 480px;
+}
+
+.activation-description {
+    color: var(--light-text);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.activation-state,
+.activation-result {
+    text-align: center;
+}
+
+.activation-state p,
+.activation-result p {
+    color: var(--light-text);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.activation-spinner {
+    border-top-color: var(--brand-primary);
+    border-color: rgba(223, 122, 72, 0.2);
+    border-top-color: var(--brand-primary);
+    height: 28px;
+    margin: 0 0 16px;
+    width: 28px;
+}
+
+.activation-result h2 {
+    color: var(--dark-text);
+    font-size: 22px;
+    font-weight: 700;
+    margin: 12px 0 8px;
+}
+
+.activation-result-icon {
+    color: #dc3545;
+    font-size: 56px;
+    line-height: 1;
+}
+
+.activation-result-icon.success {
+    color: #198754;
+}
+
 /* Card Header */
 .card-header {
     text-align: center;

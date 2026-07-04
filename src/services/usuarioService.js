@@ -22,6 +22,11 @@ export async function eliminarUsuario(id) {
     return response.data
 }
 
+export async function reenviarActivacionUsuario(id) {
+    const response = await api.post(`/usuarios/${id}/reenviar-activacion`)
+    return response.data
+}
+
 // ================= SERVICIOS DE ROLES =================
 
 export async function obtenerRoles() {
