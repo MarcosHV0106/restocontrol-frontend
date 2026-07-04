@@ -3,7 +3,7 @@ import api from './api';
 // ================= SERVICIOS DE MESAS =================
 
 export async function obtenerMesas() {
-    const response = await api.get('/mesas');
+    const response = await api.get('/mesas/con-pedidos');
     return response.data;
 }
 

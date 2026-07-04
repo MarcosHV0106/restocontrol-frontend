@@ -285,24 +285,7 @@ const resumenCalculado = computed(() => {
 
 const listar = async () => {
     try {
-        const data = await obtenerMesas();
-
-        // Cargar pedidos para cada mesa de forma segura
-        for (let mesa of data) {
-            try {
-                // Si la mesa está libre, no hacemos fetch para ahorrar red
-                if(mesa.estadoMesa.descripcion !== 'libre') {
-                     const resPed = await api.get(`/pedidos/mesa/${mesa.idMesa}`);
-                     mesa.pedido = resPed.data ? resPed.data : null;
-                } else {
-                     mesa.pedido = null;
-                }
-            // eslint-disable-next-line no-unused-vars
-            } catch (error) {
-                mesa.pedido = null;
-            }
-        }
-        entidades.value = data;
+        entidades.value = await obtenerMesas();
 
         // Si hay una mesa seleccionada, actualizamos su información en el panel
         if (mesaSeleccionada.value) {
