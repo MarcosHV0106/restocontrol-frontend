@@ -8,6 +8,12 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import App from './App.vue'
 import router from './router'
 
+import { inicializarTema } from '@/services/temaService'
+import '@/assets/css/tema.css'
+
+inicializarTema()
+
+
 const app = createApp(App)
 
 app.use(createPinia())

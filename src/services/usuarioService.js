@@ -27,6 +27,11 @@ export async function reenviarActivacionUsuario(id) {
     return response.data
 }
 
+export async function cambiarContrasena(usuarioData) {
+    const response = await api.put('/usuarios/cambiar-contrasena', usuarioData)
+    return response.data
+}
+
 // ================= SERVICIOS DE ROLES =================
 
 export async function obtenerRoles() {

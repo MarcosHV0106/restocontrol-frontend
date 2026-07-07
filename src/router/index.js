@@ -9,6 +9,7 @@ import UsuarioView from '@/views/UsuarioView.vue'
 import MesaView from '@/views/MesaView.vue'
 import PedidoView from '@/views/PedidoView.vue'
 import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
+import ConfiguracionView from '@/views/ConfiguracionView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -24,7 +25,8 @@ const routes = [
     // Rutas compartidas (ADMIN y MESERO pueden entrar)
     { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
     { path: '/pedidos', name: 'pedidos', component: PedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
-    { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } }
+    { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
+    { path: '/configuracion', name: 'configuracion', component: ConfiguracionView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } }
 ]
 
 const router = createRouter({

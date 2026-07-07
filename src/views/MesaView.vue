@@ -409,7 +409,7 @@ onMounted(() => {
 /* CSS Ajustado específicamente para este componente.
    Evitamos que colisione con otros componentes globales */
 .main-container-mesas {
-    background-color: #f8f9fa;
+    background-color: transparent;
     min-height: calc(100vh - 70px);
 }
 
