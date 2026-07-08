@@ -17,7 +17,7 @@
         <iframe
             title="RestoControlReportes"
             class="powerbi-frame"
-            src="https://app.powerbi.com/view?r=eyJrIjoiMjRiNjRiZDgtZmQ2YS00YzdhLWE0M2YtOTBjYWQwYjhhYmZkIiwidCI6ImM0YTY2YzM0LTJiYjctNDUxZi04YmUxLWIyYzI2YTQzMDE1OCIsImMiOjR9"
+            src="https://app.powerbi.com/view?r=eyJrIjoiZjhjMjZkYTUtNTMzNS00ZTg5LWExNzUtOWYzNzlhNmE4ODk0IiwidCI6ImM0YTY2YzM0LTJiYjctNDUxZi04YmUxLWIyYzI2YTQzMDE1OCIsImMiOjR9"
             frameborder="0"
             allowfullscreen>
         </iframe>
