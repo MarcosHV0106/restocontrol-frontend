@@ -9,6 +9,10 @@ body.dark-theme main{
     background:#202020;
 }
 
+body.dark-theme .bg-resto-light{
+    background:#202020 !important;
+}
+
 body.dark-theme{
     --sidebar-bg:#1d1d1d;
     --sidebar-border:#3d3d3d;
@@ -40,6 +44,17 @@ body.dark-theme .text-muted {
     color: #c7c7c7 !important;
 }
 
+/* ==========================================================
+   PAGE HEADER
+========================================================== */
+
+body.dark-theme .page-title{
+    color:#ffffff;
+}
+
+body.dark-theme .page-subtitle{
+    color:#bdbdbd;
+}
 /* ==========================================================
    USUARIO DEL NAVBAR
 ========================================================== */
@@ -192,4 +207,273 @@ body.dark-theme .alert-danger{
     background:#5b2328;
     border-color:#8b3038;
     color:#f8d7da;
+}
+
+/* ==========================================================
+   MODAL APERTURA DE MESA
+========================================================== */
+
+body.dark-theme .btn-counter{
+
+    background:#353535;
+    border-color:#505050;
+    color:#f5f5f5;
+
+}
+
+body.dark-theme .btn-counter:hover{
+
+    background:#dc7448;
+    border-color:#dc7448;
+    color:white;
+
+}
+
+body.dark-theme .counter-value{
+
+    color:white;
+
+}
+
+body.dark-theme .modal-content{
+
+    background:#2b2b2b;
+    color:white;
+    border:1px solid #444;
+
+}
+
+body.dark-theme .modal-header{
+
+    border-bottom:1px solid #444;
+
+}
+
+body.dark-theme .modal-footer{
+
+    border-top:1px solid #444;
+
+}
+
+body.dark-theme .btn-close{
+
+    filter:invert(1);
+
+}
+
+body.dark-theme .modal-title{
+
+    color:white;
+
+}
+
+body.dark-theme .modal-body{
+
+    color:#d5d5d5;
+
+}
+
+/* =========================================
+   NUEVO PEDIDO
+========================================= */
+
+body.dark-theme .page-title{
+
+    color:white;
+
+}
+body.dark-theme .cart-item{
+
+    background:#353535 !important;
+
+    border:1px solid #4a4a4a !important;
+
+    border-radius:14px;
+
+}
+
+body.dark-theme .cart-item .text-dark{
+
+    color:white !important;
+
+}
+body.dark-theme .page-subtitle{
+
+    color:#bcbcbc;
+
+}
+body.dark-theme .cart-item .text-muted{
+
+    color:#c9c9c9 !important;
+
+}
+
+body.dark-theme .contenedor-info{
+
+    background:#2b2b2b;
+
+    border:1px solid #444;
+
+}
+
+body.dark-theme .qty-selector{
+
+    background:#2b2b2b !important;
+
+    border:1px solid #4c4c4c !important;
+
+    box-shadow:none !important;
+
+}
+
+body.dark-theme .qty-selector button{
+
+    color:white;
+
+    background:transparent;
+
+}
+
+body.dark-theme .qty-selector span{
+
+    color:white;
+
+    font-weight:600;
+
+}
+
+body.dark-theme .qty-selector button:hover{
+
+    color:#dc7448;
+
+}
+
+body.dark-theme .btn-link.text-danger{
+
+    color:#ff5d73 !important;
+
+}
+
+body.dark-theme .btn-white{
+
+    background:#3b3b3b;
+
+    border-color:#555;
+
+    color:white !important;
+
+}
+
+body.dark-theme .btn-white.text-dark{
+
+    color:white !important;
+
+}
+
+
+body.dark-theme .info-label{
+
+    color:#bcbcbc;
+
+}
+body.dark-theme .info-value{
+
+    color:white;
+
+}
+
+body.dark-theme .btn-cat{
+
+    background:#303030;
+
+    color:#d9d9d9;
+
+    border-color:#444;
+
+}
+
+body.dark-theme .btn-cat.active{
+
+    background:#dc7448;
+
+    color:white;
+
+}
+
+body.dark-theme .food-card{
+
+    background:#2b2b2b;
+
+    border:1px solid #3e3e3e;
+
+}
+
+body.dark-theme .food-img-placeholder{
+
+    background:#363636;
+
+}
+
+body.dark-theme .food-card h6{
+
+    color:white !important;
+
+}
+
+body.dark-theme .order-panel{
+
+    background:#2b2b2b;
+
+}
+
+body.dark-theme .order-panel .card-header{
+
+    background:#323232 !important;
+
+    border-bottom:1px solid #444;
+
+}
+
+body.dark-theme .order-panel h5{
+
+    color:white !important;
+
+}
+
+body.dark-theme .order-summary textarea{
+
+    background:#353535;
+
+    color:white;
+
+    border-color:#505050;
+
+}
+
+body.dark-theme .order-summary{
+
+    color:#d5d5d5;
+
+}
+
+body.dark-theme .order-summary .fs-5{
+
+    color:white !important;
+
+}
+
+body.dark-theme .btn-white{
+
+    background:#3a3a3a;
+
+    color:white;
+
+    border-color:#4a4a4a;
+
+}
+
+body.dark-theme .btn-white:hover{
+
+    background:#474747;
+
 }

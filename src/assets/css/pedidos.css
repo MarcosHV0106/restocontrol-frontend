@@ -292,3 +292,112 @@
     font-size:1.5rem;
     font-weight:700;
 }
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.page-header{
+    margin-bottom:1.5rem;
+}
+
+.page-title{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+
+    font-size:2rem;
+    font-weight:800;
+
+    color:#2d3748;
+}
+
+.page-title i{
+
+    color:#dc7448;
+
+}
+
+.page-subtitle{
+
+    margin-top:.3rem;
+    color:#718096;
+    font-size:.95rem;
+
+}
+
+.contenedor-info{
+
+    background:white;
+
+    border:1px solid #ececec;
+
+    border-radius:16px;
+
+    padding:14px 18px;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.05);
+
+}
+
+.info-label{
+
+    font-size:.75rem;
+
+    text-transform:uppercase;
+
+    color:#718096;
+
+}
+
+.info-value{
+
+    font-size:1.2rem;
+
+    font-weight:700;
+
+    color:#2d3748;
+
+}
+
+.btn-cat{
+
+    background:white;
+
+    border:1px solid #e5e5e5;
+
+    border-radius:12px;
+
+    padding:10px 18px;
+
+    transition:.2s;
+
+}
+
+.btn-cat.active{
+
+    background:#dc7448;
+
+    color:white;
+
+}
+
+.food-card{
+
+    transition:.25s;
+
+    border-radius:18px;
+
+}
+
+.food-card:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.order-panel{
+
+    border-radius:20px;
+
+}

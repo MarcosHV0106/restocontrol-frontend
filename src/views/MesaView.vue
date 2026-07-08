@@ -7,9 +7,15 @@
 
             <main class="container-fluid p-4 main-container-mesas">
                 <div class="d-flex justify-content-between align-items-end mb-4">
-                    <div>
-                        <h2 class="fw-bold mb-1 text-dark">Gestión de Mesas</h2>
-                        <p class="text-muted mb-0">Monitoreo de salón en tiempo real</p>
+                    <div class="page-header">
+                        <h2 class="page-title">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+                            Gestión de Mesas
+                        </h2>
+
+                        <p class="page-subtitle">
+                            Administra las mesas y supervisa el estado del salón en tiempo real.
+                        </p>
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-refresh btn-light border" @click="listar">
@@ -45,13 +51,15 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;" v-model="filtros.piso">
+                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;"
+                                    v-model="filtros.piso">
                                     <option value="">Todos los sectores / Pisos</option>
                                     <option v-for="p in pisos" :key="p" :value="p">Piso {{ p }}</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;" v-model="filtros.estado">
+                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;"
+                                    v-model="filtros.estado">
                                     <option value="">Todos los estados</option>
                                     <option value="libre">Libre</option>
                                     <option value="ocupada">Ocupada</option>
@@ -69,40 +77,40 @@
                 </div>
 
                 <div class="row">
-                    <div :class="mesaSeleccionada ? 'col-lg-8' : 'col-lg-12'" class="transition-all" style="transition: all 0.3s ease;">
-                      <div class="mesa-grid">
-                          <div
-                              v-for="mesa in mesasFiltradas"
-                              :key="mesa.idMesa"
-                              :class="['mesa-card-v2', mesa.estadoMesa.descripcion, { 'active': mesaSeleccionada?.idMesa === mesa.idMesa }]"
-                              @click="seleccionarMesa(mesa)"
-                          >
-                              <div class="mesa-badge-status">{{ mesa.estadoMesa.descripcion }}</div>
+                    <div :class="mesaSeleccionada ? 'col-lg-8' : 'col-lg-12'" class="transition-all"
+                        style="transition: all 0.3s ease;">
+                        <div class="mesa-grid">
+                            <div v-for="mesa in mesasFiltradas" :key="mesa.idMesa"
+                                :class="['mesa-card-v2', mesa.estadoMesa.descripcion, { 'active': mesaSeleccionada?.idMesa === mesa.idMesa }]"
+                                @click="seleccionarMesa(mesa)">
+                                <div class="mesa-badge-status">{{ mesa.estadoMesa.descripcion }}</div>
 
-                              <div class="mesa-body">
-                                  <div class="mesa-circle d-flex flex-column align-items-center justify-content-center">
-                                      <i class="bi bi-cup-hot-fill mb-1" style="font-size: 1.4rem; opacity: 0.9;"></i>
-                                      <span class="m-num lh-1" style="font-size: 1.2rem;">{{ mesa.numeroMesa }}</span>
-                                  </div>
+                                <div class="mesa-body">
+                                    <div
+                                        class="mesa-circle d-flex flex-column align-items-center justify-content-center">
+                                        <i class="bi bi-cup-hot-fill mb-1" style="font-size: 1.4rem; opacity: 0.9;"></i>
+                                        <span class="m-num lh-1" style="font-size: 1.2rem;">{{ mesa.numeroMesa }}</span>
+                                    </div>
 
-                                  <div class="mesa-info mt-2">
-                                      <p class="m-cap mb-0 small text-muted">
-                                          <i class="bi bi-people me-1"></i> {{ mesa.capacidad }} pers.
-                                      </p>
-                                      <p class="m-piso mb-0 small text-muted fw-bold">Piso {{ mesa.piso }}</p>
-                                  </div>
-                              </div>
+                                    <div class="mesa-info mt-2">
+                                        <p class="m-cap mb-0 small text-muted">
+                                            <i class="bi bi-people me-1"></i> {{ mesa.capacidad }} pers.
+                                        </p>
+                                        <p class="m-piso mb-0 small text-muted fw-bold">Piso {{ mesa.piso }}</p>
+                                    </div>
+                                </div>
 
-                              <div v-if="mesa.pedido" class="mesa-footer-price fw-bold text-success mt-2">
-                                  S/ {{ Number(mesa.pedido.total).toFixed(2) }}
-                              </div>
-                          </div>
-                      </div>
+                                <div v-if="mesa.pedido" class="mesa-footer-price fw-bold text-success mt-2">
+                                    S/ {{ Number(mesa.pedido.total).toFixed(2) }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4" v-if="mesaSeleccionada">
                         <div class="card border-0 shadow-sm panel-detalle-v2 sticky-top" style="top: 20px;">
-                            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                            <div
+                                class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                                 <h4 class="fw-bold mb-0">Mesa {{ mesaSeleccionada.numeroMesa }}</h4>
                                 <button class="btn-close" @click="mesaSeleccionada = null"></button>
                             </div>
@@ -117,38 +125,46 @@
                                 </div>
 
                                 <div class="d-grid gap-2 mb-4">
-                                    <button class="btn btn-outline-secondary py-2" @click="editarMesa(mesaSeleccionada.idMesa)">
+                                    <button class="btn btn-outline-secondary py-2"
+                                        @click="editarMesa(mesaSeleccionada.idMesa)">
                                         <i class="bi bi-pencil me-2"></i>Editar Datos de Mesa
                                     </button>
 
                                     <button v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'"
-                                            class="btn btn-primary-resto py-2 text-white" @click="abrirApertura">
+                                        class="btn btn-primary-resto py-2 text-white" @click="abrirApertura">
                                         Aperturar Mesa
                                     </button>
 
-                                    <button v-if="mesaSeleccionada.estadoMesa.descripcion  === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar'"
-                                            class="btn btn-success py-2" @click="cobrarPedidoAction">
+                                    <button
+                                        v-if="mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar'"
+                                        class="btn btn-success py-2" @click="cobrarPedidoAction">
                                         Generar Cobro
                                     </button>
 
-                                    <button class="btn btn-light border py-2" v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'" @click="abrirUnion">
+                                    <button class="btn btn-light border py-2"
+                                        v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'" @click="abrirUnion">
                                         Unir con otra mesa
                                     </button>
                                 </div>
 
-                                <div v-if="mesaSeleccionada.pedido" class="pedido-preview p-3 rounded-3 border bg-light">
-                                    <h6 class="fw-bold mb-3 small text-uppercase text-muted">Pedido Actual #{{ mesaSeleccionada.pedido.idPedido }}</h6>
-                                    <div v-for="d in mesaSeleccionada.pedido.detalles" :key="d.idDetalle" class="d-flex justify-content-between mb-2 small">
+                                <div v-if="mesaSeleccionada.pedido"
+                                    class="pedido-preview p-3 rounded-3 border bg-light">
+                                    <h6 class="fw-bold mb-3 small text-uppercase text-muted">Pedido Actual #{{
+                                        mesaSeleccionada.pedido.idPedido }}</h6>
+                                    <div v-for="d in mesaSeleccionada.pedido.detalles" :key="d.idDetalle"
+                                        class="d-flex justify-content-between mb-2 small">
                                         <span>{{ d.cantidad }}x {{ d.alimento.nombreAlimento }}</span>
                                         <span class="fw-bold">S/ {{ Number(d.subtotal).toFixed(2) }}</span>
                                     </div>
                                     <hr>
                                     <div class="d-flex justify-content-between fw-bold align-items-center">
                                         <span>Total</span>
-                                        <span class="text-success fs-5">S/ {{ Number(mesaSeleccionada.pedido.total).toFixed(2) }}</span>
+                                        <span class="text-success fs-5">S/ {{
+                                            Number(mesaSeleccionada.pedido.total).toFixed(2) }}</span>
                                     </div>
                                 </div>
-                                <div v-else class="text-center py-5 text-muted border rounded-3 bg-light" style="border-style: dashed !important;">
+                                <div v-else class="text-center py-5 text-muted border rounded-3 bg-light"
+                                    style="border-style: dashed !important;">
                                     <i class="bi bi-cup-hot d-block fs-1 mb-2 text-secondary"></i>
                                     Mesa disponible sin consumo
                                 </div>
@@ -169,7 +185,8 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-bold">Número de Mesa</label>
-                            <input class="form-control" type="number" v-model="entidad.numeroMesa" placeholder="Ej. 12" />
+                            <input class="form-control" type="number" v-model="entidad.numeroMesa"
+                                placeholder="Ej. 12" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-bold">Capacidad (Personas)</label>
@@ -189,7 +206,8 @@
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary-resto text-white" @click="guardarMesa">Guardar Cambios</button>
+                        <button type="button" class="btn btn-primary-resto text-white" @click="guardarMesa">Guardar
+                            Cambios</button>
                     </div>
                 </div>
             </div>
@@ -204,15 +222,21 @@
                     </div>
                     <div class="modal-body text-center">
                         <p class="text-muted small">Cantidad de comensales</p>
-                        <div class="d-flex justify-content-center align-items-center gap-3">
-                            <button class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;" @click="cantidadPersonas > 1 ? cantidadPersonas-- : null">-</button>
-                            <h3 class="mb-0 fw-bold w-25">{{ cantidadPersonas }}</h3>
-                            <button class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;" @click="cantidadPersonas < mesaSeleccionada?.capacidad ? cantidadPersonas++ : null">+</button>
+                        <div class="person-counter">
+                            <button class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;"
+                                @click="cantidadPersonas > 1 ? cantidadPersonas-- : null">-</button>
+                            <span class="counter-value">
+                                {{ cantidadPersonas }}
+                            </span>
+                            <button class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;"
+                                @click="cantidadPersonas < mesaSeleccionada?.capacidad ? cantidadPersonas++ : null">+</button>
                         </div>
-                        <small class="text-danger mt-2 d-block" v-if="cantidadPersonas === mesaSeleccionada?.capacidad">Capacidad máxima alcanzada</small>
+                        <small class="text-danger mt-2 d-block"
+                            v-if="cantidadPersonas === mesaSeleccionada?.capacidad">Capacidad máxima alcanzada</small>
                     </div>
                     <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-primary-resto text-white w-100" @click="confirmarAperturaMesa">
+                        <button type="button" class="btn btn-primary-resto text-white w-100"
+                            @click="confirmarAperturaMesa">
                             Ir a tomar pedido
                         </button>
                     </div>
@@ -375,7 +399,7 @@ const confirmarAperturaMesa = () => {
 };
 
 const cobrarPedidoAction = async () => {
-    if(!mesaSeleccionada.value.pedido) {
+    if (!mesaSeleccionada.value.pedido) {
         alert("No hay pedido para cobrar");
         return;
     }
@@ -424,14 +448,40 @@ onMounted(() => {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.kpi-label { font-size: 0.85rem; color: #718096; font-weight: 600; text-transform: uppercase; }
-.kpi-value { font-size: 1.8rem; font-weight: 800; margin: 0; color: #2d3748; }
-.kpi-icon i { font-size: 2.5rem; opacity: 0.8; }
+.kpi-label {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 600;
+    text-transform: uppercase;
+}
 
-.libres { border-bottom: 4px solid #48bb78; }
-.ocupadas { border-bottom: 4px solid #f56565; }
-.reservadas { border-bottom: 4px solid #4299e1; }
-.cobrar { border-bottom: 4px solid #ed8936; }
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0;
+    color: #2d3748;
+}
+
+.kpi-icon i {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.libres {
+    border-bottom: 4px solid #48bb78;
+}
+
+.ocupadas {
+    border-bottom: 4px solid #f56565;
+}
+
+.reservadas {
+    border-bottom: 4px solid #4299e1;
+}
+
+.cobrar {
+    border-bottom: 4px solid #ed8936;
+}
 
 .input-group-modern {
     background: #fff;
@@ -442,7 +492,14 @@ onMounted(() => {
     align-items: center;
     gap: 10px;
 }
-.input-group-modern input { border: none; outline: none; width: 100%; color: #4a5568; background: transparent; }
+
+.input-group-modern input {
+    border: none;
+    outline: none;
+    width: 100%;
+    color: #4a5568;
+    background: transparent;
+}
 
 .mesa-grid {
     display: grid;
@@ -459,11 +516,18 @@ onMounted(() => {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
-.mesa-card-v2:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-.mesa-card-v2.active { border-color: #dc7448; background: #fffaf0; }
+.mesa-card-v2:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.mesa-card-v2.active {
+    border-color: #dc7448;
+    background: #fffaf0;
+}
 
 .mesa-circle {
     width: 65px;
@@ -479,10 +543,29 @@ onMounted(() => {
     font-size: 1.5rem;
 }
 
-.libre .mesa-circle { color: #38a169; border-color: #c6f6d5; background: #f0fff4; }
-.ocupada .mesa-circle { color: #e53e3e; border-color: #fed7d7; background: #fff5f5; }
-.reservada .mesa-circle { color: #3182ce; border-color: #bee3f8; background: #ebf8ff; }
-.cobrar .mesa-circle { color: #dd6b20; border-color: #feebc8; background: #fffaf0; }
+.libre .mesa-circle {
+    color: #38a169;
+    border-color: #c6f6d5;
+    background: #f0fff4;
+}
+
+.ocupada .mesa-circle {
+    color: #e53e3e;
+    border-color: #fed7d7;
+    background: #fff5f5;
+}
+
+.reservada .mesa-circle {
+    color: #3182ce;
+    border-color: #bee3f8;
+    background: #ebf8ff;
+}
+
+.cobrar .mesa-circle {
+    color: #dd6b20;
+    border-color: #feebc8;
+    background: #fffaf0;
+}
 
 .mesa-badge-status {
     position: absolute;
@@ -496,10 +579,29 @@ onMounted(() => {
     background: #edf2f7;
     color: #4a5568;
 }
-.libre .mesa-badge-status { background: #c6f6d5; color: #22543d; }
-.ocupada .mesa-badge-status { background: #fed7d7; color: #742a2a; }
-.cobrar .mesa-badge-status { background: #feebc8; color: #7b341e; }
 
-.btn-primary-resto { background: #dc7448; border-color: #dc7448; }
-.btn-primary-resto:hover { background: #c5633a; border-color: #c5633a; }
+.libre .mesa-badge-status {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.ocupada .mesa-badge-status {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.cobrar .mesa-badge-status {
+    background: #feebc8;
+    color: #7b341e;
+}
+
+.btn-primary-resto {
+    background: #dc7448;
+    border-color: #dc7448;
+}
+
+.btn-primary-resto:hover {
+    background: #c5633a;
+    border-color: #c5633a;
+}
 </style>
