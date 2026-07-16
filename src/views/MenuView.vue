@@ -1,24 +1,32 @@
 <template>
-    <div class="layout">
+    <div class="layout management-layout">
         <SidebarComponent />
 
         <div class="main-content">
             <NavbarComponent />
 
-            <main class="p-4 p-md-5">
-                <h2 class="fw-bold mb-1">Menu y Categorias</h2>
+            <main class="management-page catalog-page">
+                <header class="management-heading">
+                    <div class="management-title-group">
+                        <span class="management-title-icon"><i class="bi bi-tags"></i></span>
+                        <div><h1>Menú y categorías</h1><p>{{ descripcionTab }}</p></div>
+                    </div>
+                    <span class="management-count"><i class="bi bi-cloud-check"></i>Catálogo sincronizado</span>
+                </header>
 
-                <p class="text-muted mb-4" v-if="tabActual === 'alimentos'">
-                    Gestiona los platos disponibles para el menu del restaurante.
-                </p>
-                <p class="text-muted mb-4" v-if="tabActual === 'categorias'">
-                    Gestiona las categorias de tu menu.
-                </p>
-                <p class="text-muted mb-4" v-if="tabActual === 'estimacion'">
-                    Proyección y control de estimaciones.
-                </p>
+                <section class="management-summary" aria-label="Resumen del catálogo">
+                    <article><i class="bi bi-egg-fried"></i><div><span>Platos registrados</span><strong>{{ alimentos.length }}</strong></div></article>
+                    <article><i class="bi bi-collection"></i><div><span>Categorías</span><strong>{{ categorias.length }}</strong></div></article>
+                    <article><i class="bi bi-check-circle"></i><div><span>Disponibles</span><strong>{{ alimentosDisponibles }}</strong></div></article>
+                    <article><i class="bi bi-card-checklist"></i><div><span>Con costo definido</span><strong>{{ recetasConfiguradas }}</strong></div></article>
+                </section>
 
-                <div class="tabs-container mb-4">
+                <div v-if="errorDatos" class="management-error alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorDatos }}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @click="cargarDatos">Reintentar</button>
+                </div>
+
+                <div class="tabs-container management-tabs">
                     <button class="btn px-4 py-2 border-0"
                             :class="{ active: tabActual === 'alimentos' }"
                             @click="tabActual = 'alimentos'">Alimentos/Platos</button>
@@ -31,24 +39,23 @@
                 </div>
 
                 <div v-if="tabActual === 'alimentos'">
-                    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-                        <div class="input-group bg-white" style="width: 100%; max-width: 500px; border-radius: 8px; border: 1px solid #f0e6da;">
+                    <div class="management-toolbar">
+                        <div class="input-group management-search">
                             <span class="input-group-text bg-transparent border-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
                             <input type="text"
                                    class="form-control border-0 bg-transparent"
                                    placeholder="Buscar alimento..."
-                                   v-model="busquedaAlimento"
-                                   style="box-shadow: none;">
+                                   v-model="busquedaAlimento">
                         </div>
-                        <button class="btn btn-brand rounded-3 px-4 py-2 fw-medium"
+                        <button class="btn btn-brand management-primary px-3"
                                 @click="abrirModalAlimentoNuevo">
                             <i class="bi bi-plus-lg me-1"></i> Registrar Alimento
                         </button>
                     </div>
 
-                    <div class="custom-table-card shadow-sm">
+                    <div class="custom-table-card management-table-card">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -64,7 +71,7 @@
                                 <tr v-for="alimento in alimentosFiltrados"
                                     :key="alimento.idAlimento"
                                     :class="{ 'fila-inactiva': !alimento.disponible }">
-                                    <td class="ps-4 py-3 fw-bold">
+                                    <td data-label="Plato" class="ps-4 py-3 fw-bold">
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="food-icon-box d-flex align-items-center justify-content-center">
                                                 <i class="bi bi-egg-fried fs-5"></i>
@@ -77,24 +84,24 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3">
+                                    <td data-label="Categoría" class="py-3">
                                         <span class="badge rounded-pill badge-soft-blue px-3 py-2">
                                             {{ alimento.categoria ? alimento.categoria.nombreCategoria : 'Sin categoria' }}
                                         </span>
                                     </td>
-                                    <td class="py-3 fw-medium">{{ formatearPrecio(alimento.precio) }}</td>
-                                    <td class="py-3 fw-medium">
+                                    <td data-label="Precio" class="py-3 fw-medium">S/ {{ formatearPrecio(alimento.precio) }}</td>
+                                    <td data-label="Costo receta" class="py-3 fw-medium">
                                         <span :class="Number(alimento.costoReceta) > 0 ? 'text-success' : 'text-warning'">
                                             {{ formatearPrecio(alimento.costoReceta) }}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-center">
+                                    <td data-label="Estado" class="py-3 text-center">
                                         <span class="badge rounded-pill px-3 py-2"
                                               :class="alimento.disponible ? 'badge-soft-green' : 'bg-secondary text-white'">
                                             {{ alimento.disponible ? 'Disponible' : 'No disponible' }}
                                         </span>
                                     </td>
-                                    <td class="pe-4 py-3 text-end">
+                                    <td data-label="Acciones" class="pe-4 py-3 text-end">
                                         <button class="btn btn-sm text-muted p-1 me-1"
                                                 @click="abrirReceta(alimento)"
                                                 title="Configurar receta y costos">
@@ -112,12 +119,9 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr v-if="alimentosFiltrados.length === 0">
-                                        <td colspan="6" class="text-center py-5 text-muted">
-                                            <div class="spinner-border" role="status">
-                                                <span class="visually-hidden">Cargando...</span>
-                                            </div>
-                                        </td>
+                                <tr v-if="cargandoDatos"><td colspan="6" class="management-empty"><span class="spinner-border spinner-border-sm"></span> Cargando catálogo…</td></tr>
+                                <tr v-else-if="alimentosFiltrados.length === 0">
+                                    <td colspan="6" class="management-empty"><i class="bi bi-search"></i><strong>No encontramos platos</strong><span>Prueba con otro término o registra uno nuevo.</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -125,24 +129,23 @@
                 </div>
 
                 <div v-if="tabActual === 'categorias'">
-                    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-                        <div class="input-group bg-white" style="width: 100%; max-width: 500px; border-radius: 8px; border: 1px solid #f0e6da;">
+                    <div class="management-toolbar">
+                        <div class="input-group management-search">
                             <span class="input-group-text bg-transparent border-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
                             <input type="text"
                                    class="form-control border-0 bg-transparent"
                                    placeholder="Buscar categoria..."
-                                   v-model="busquedaCategoria"
-                                   style="box-shadow: none;">
+                                   v-model="busquedaCategoria">
                         </div>
-                        <button class="btn btn-brand rounded-3 px-4 py-2 fw-medium"
+                        <button class="btn btn-brand management-primary px-3"
                                 @click="abrirModalCategoriaNueva">
                             <i class="bi bi-plus-lg me-1"></i> Registrar categoria
                         </button>
                     </div>
 
-                    <div class="custom-table-card shadow-sm">
+                    <div class="custom-table-card management-table-card">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -157,20 +160,20 @@
                                 <tr v-for="categoria in categoriasFiltradas"
                                     :key="categoria.idCategoria"
                                     :class="{ 'categoria-inactiva': categoria.eliminado }">
-                                    <td class="ps-4 py-3 fw-bold">{{ categoria.nombreCategoria }}</td>
-                                    <td class="py-3 text-muted">{{ categoria.descripcion }}</td>
-                                    <td class="py-3 text-center">
+                                    <td data-label="Categoría" class="ps-4 py-3 fw-bold">{{ categoria.nombreCategoria }}</td>
+                                    <td data-label="Descripción" class="py-3 text-muted">{{ categoria.descripcion }}</td>
+                                    <td data-label="Platos" class="py-3 text-center">
                                         <span class="badge rounded-pill badge-soft-orange px-3 py-2">
                                             {{ contarAlimentosPorCategoria(categoria.idCategoria) }}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-center">
+                                    <td data-label="Estado" class="py-3 text-center">
                                         <span class="badge rounded-pill px-3 py-2"
                                               :class="categoria.eliminado ? 'bg-secondary text-white' : 'badge-soft-green'">
                                             {{ categoria.eliminado ? 'Inactivo' : 'Activo' }}
                                         </span>
                                     </td>
-                                    <td class="pe-4 py-3 text-end">
+                                    <td data-label="Acciones" class="pe-4 py-3 text-end">
                                         <button class="btn btn-sm text-muted p-1 me-1"
                                                 @click="editarCategoria(categoria)"
                                                 :disabled="categoria.eliminado"
@@ -184,12 +187,9 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr v-if="categoriasFiltradas.length === 0">
-                                        <td colspan="5" class="text-center py-5 text-muted">
-                                            <div class="spinner-border" role="status">
-                                                <span class="visually-hidden">Cargando...</span>
-                                            </div>
-                                        </td>
+                                <tr v-if="cargandoDatos"><td colspan="5" class="management-empty"><span class="spinner-border spinner-border-sm"></span> Cargando categorías…</td></tr>
+                                <tr v-else-if="categoriasFiltradas.length === 0">
+                                    <td colspan="5" class="management-empty"><i class="bi bi-search"></i><strong>No encontramos categorías</strong><span>Prueba con otro término o registra una nueva.</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -197,8 +197,9 @@
                 </div>
 
                 <div v-if="tabActual === 'estimacion'">
-                    <div class="custom-table-card shadow-sm p-4 text-muted">
-                        La estimacion diaria queda pendiente para otra fase.
+                    <div class="management-placeholder">
+                        <i class="bi bi-calendar2-range"></i><strong>Estimación diaria</strong>
+                        <p>Este espacio está preparado para incorporar la proyección de demanda cuando se habilite el módulo.</p>
                     </div>
                 </div>
             </main>
@@ -211,6 +212,7 @@
                         <h4 class="modal-title fw-bold" id="registrarAlimentoModalLabel" style="color: #2c1a04; font-size: 1.4rem;">
                             {{ modoEdicionAlimento ? 'Editar Alimento' : 'Registrar Nuevo Alimento' }}
                         </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
 
                     <div class="modal-body py-3">
@@ -383,6 +385,7 @@
                         <h4 class="modal-title fw-bold" id="registrarCategoriaModalLabel" style="color: #2c1a04; font-size: 1.4rem;">
                             {{ modoEdicion ? 'Editar Categoria' : 'Registrar Nueva Categoria' }}
                         </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
 
                     <div class="modal-body py-3">
@@ -427,6 +430,7 @@
 
 <script setup>
 import '@/assets/css/menu.css'
+import '@/assets/css/management.css'
 import { ref, computed, onMounted } from 'vue'
 import * as bootstrap from 'bootstrap'
 
@@ -442,6 +446,8 @@ const categorias = ref([])
 const insumos = ref([])
 const busquedaAlimento = ref('')
 const busquedaCategoria = ref('')
+const cargandoDatos = ref(true)
+const errorDatos = ref('')
 
 // Estados de edición
 const modoEdicionAlimento = ref(false)
@@ -466,6 +472,13 @@ const nuevaCategoria = ref({
 
 // ================= PROPIEDADES COMPUTADAS =================
 const categoriasActivas = computed(() => categorias.value)
+const alimentosDisponibles = computed(() => alimentos.value.filter(alimento => alimento.disponible).length)
+const recetasConfiguradas = computed(() => alimentos.value.filter(alimento => Number(alimento.costoReceta) > 0).length)
+const descripcionTab = computed(() => ({
+    alimentos: 'Administra platos, precios, disponibilidad y costos de receta.',
+    categorias: 'Organiza el catálogo para que el equipo encuentre cada plato rápidamente.',
+    estimacion: 'Consulta la planificación diaria del menú y su demanda esperada.'
+})[tabActual.value])
 const costoTotalReceta = computed(() => filasReceta.value
     .filter(fila => fila.seleccionado)
     .reduce((total, fila) => total + Number(fila.cantidad || 0) * Number(fila.costoUnitario || 0), 0)
@@ -513,11 +526,20 @@ const cerrarModalVisual = (idModal) => {
 
 // ================= MÉTODOS DE CONTROL =================
 const cargarDatos = async () => {
+    cargandoDatos.value = true
+    errorDatos.value = ''
     try {
-        alimentos.value = await menuService.obtenerAlimentos()
-        categorias.value = await menuService.obtenerCategorias()
+        const [listaAlimentos, listaCategorias] = await Promise.all([
+            menuService.obtenerAlimentos(),
+            menuService.obtenerCategorias()
+        ])
+        alimentos.value = listaAlimentos
+        categorias.value = listaCategorias
     } catch (error) {
         console.error('Error al sincronizar datos del menú:', error)
+        errorDatos.value = error.response?.data?.mensaje || 'No se pudo sincronizar el catálogo.'
+    } finally {
+        cargandoDatos.value = false
     }
 }
 

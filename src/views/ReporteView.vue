@@ -7,9 +7,12 @@
 
             <main class="reportes-page">
                 <header class="reportes-heading">
-                    <div>
-                        <h2>Reportes Operativos y Financieros</h2>
+                    <div class="reportes-title-group">
+                        <span class="reportes-title-icon"><i class="bi bi-bar-chart-line"></i></span>
+                        <div>
+                        <h1>Reportes operativos y financieros</h1>
                         <p>Analiza las ventas y la rentabilidad real del restaurante.</p>
+                        </div>
                     </div>
                 </header>
 
@@ -33,7 +36,7 @@
                     </div>
 
                     <div class="reportes-actions">
-                        <button class="btn btn-dark" :disabled="cargando" @click="generarReporte">
+                        <button class="btn reportes-generate-button" :disabled="cargando" @click="generarReporte">
                             <span v-if="cargando" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                             <i v-else class="bi bi-play-fill"></i>
                             {{ cargando ? 'Generando...' : 'Generar' }}
@@ -115,12 +118,12 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(plato, indice) in reporte.platosMasRentables" :key="plato.idAlimento">
-                                        <td>{{ indice + 1 }}</td>
-                                        <td class="fw-semibold">{{ plato.plato }}</td>
-                                        <td class="text-end">{{ plato.vendidos }}</td>
-                                        <td class="text-end">{{ moneda(plato.precioVentaPromedio) }}</td>
-                                        <td class="text-end">{{ moneda(plato.costoReceta) }}</td>
-                                        <td class="text-end"><span class="margen-badge">{{ porcentaje(plato.margenPorcentaje) }}</span></td>
+                                        <td data-label="#">{{ indice + 1 }}</td>
+                                        <td data-label="Plato" class="fw-semibold">{{ plato.plato }}</td>
+                                        <td data-label="Vendidos" class="text-end">{{ plato.vendidos }}</td>
+                                        <td data-label="Precio venta">{{ moneda(plato.precioVentaPromedio) }}</td>
+                                        <td data-label="Costo receta">{{ moneda(plato.costoReceta) }}</td>
+                                        <td data-label="Margen"><span class="margen-badge">{{ porcentaje(plato.margenPorcentaje) }}</span></td>
                                     </tr>
                                     <tr v-if="reporte.platosMasRentables.length === 0">
                                         <td colspan="6" class="reportes-empty">No hay ventas pagadas en el periodo seleccionado.</td>
@@ -204,12 +207,12 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="venta in reporte.ultimasVentas" :key="venta.idPedido">
-                                        <td>{{ fechaHora(venta.fechaHora) }}</td>
-                                        <td class="fw-semibold">{{ venta.ticket }}</td>
-                                        <td>Mesa {{ venta.numeroMesa }}</td>
-                                        <td>{{ venta.cliente }}</td>
-                                        <td><span class="metodo-badge">{{ venta.metodoPago }}</span></td>
-                                        <td class="text-end fw-semibold">S/ {{ moneda(venta.total) }}</td>
+                                        <td data-label="Fecha / hora">{{ fechaHora(venta.fechaHora) }}</td>
+                                        <td data-label="Ticket" class="fw-semibold">{{ venta.ticket }}</td>
+                                        <td data-label="Mesa">Mesa {{ venta.numeroMesa }}</td>
+                                        <td data-label="Cliente">{{ venta.cliente }}</td>
+                                        <td data-label="Método de pago"><span class="metodo-badge">{{ venta.metodoPago }}</span></td>
+                                        <td data-label="Total" class="fw-semibold">S/ {{ moneda(venta.total) }}</td>
                                     </tr>
                                     <tr v-if="reporte.ultimasVentas.length === 0">
                                         <td colspan="6" class="reportes-empty">No hay ventas pagadas en el periodo seleccionado.</td>
@@ -277,7 +280,6 @@ import writeXlsxFile from 'write-excel-file/browser'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import SidebarComponent from '@/components/SidebarComponent.vue'
 import { obtenerReporteRentabilidad, obtenerReporteVentas } from '@/services/reporteService'
-import '@/assets/css/disponible.css'
 import '@/assets/css/reportes.css'
 
 ChartJS.register(

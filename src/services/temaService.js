@@ -16,6 +16,11 @@ export function aplicarTema(tema) {
         document.body.classList.remove('dark-theme')
     }
 
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+        'content',
+        tema === 'dark' ? '#242425' : '#cf633d'
+    )
+
     guardarTema(tema)
 }
 

@@ -4,29 +4,29 @@
     <div class="main-content">
       <NavbarComponent />
 
-      <main class="p-4 bg-resto-light min-vh-100">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-          <div>
-            <h2 class="page-title mb-1">
-              <i class="bi bi-journal-text me-2"></i>
-              {{ tituloPagina }}
-            </h2>
+      <main class="order-editor-page">
+        <header class="order-editor-heading">
+          <div class="order-editor-title-group">
+            <span class="order-editor-title-icon"><i class="bi bi-journal-text"></i></span>
+            <div>
+            <h1>{{ tituloPagina }}</h1>
             <p class="page-subtitle mb-0">
               {{ soloLectura ? 'Consulta la información registrada en esta orden.' : 'Registra productos y administra la orden de la mesa.' }}
             </p>
+            </div>
           </div>
-          <button class="btn btn-outline-secondary" @click="regresar">
+          <button class="order-back-button" @click="regresar">
             <i class="bi bi-arrow-left me-1"></i>
             Volver
           </button>
-        </div>
+        </header>
 
         <div v-if="errorCarga" class="alert alert-danger d-flex align-items-center gap-2" role="alert">
           <i class="bi bi-exclamation-triangle-fill"></i>
           <span>{{ errorCarga }}</span>
         </div>
 
-        <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+        <section class="order-meta-grid" aria-label="Información de la orden">
           <div class="contenedor-info">
             <i class="bi bi-grid text-brand"></i>
             <div class="d-flex flex-column">
@@ -59,7 +59,7 @@
               <small class="text-muted">{{ usuarioCreador.rol?.nombreRol || 'Sin rol' }}</small>
             </div>
           </div>
-        </div>
+        </section>
 
         <div v-if="soloLectura" class="alert alert-success d-flex align-items-center gap-2">
           <i class="bi bi-lock-fill"></i>
@@ -67,7 +67,8 @@
         </div>
 
         <div class="row g-4">
-          <div class="col-lg-8">
+          <div class="col-xl-8">
+            <section class="menu-selector-card">
             <div class="categories-scroll d-flex gap-2 mb-4 pb-2">
               <button
                 v-for="categoria in categorias"
@@ -103,11 +104,15 @@
                   </span>
                 </button>
               </div>
+              <div v-if="alimentosFiltrados.length === 0" class="col-12">
+                <div class="menu-empty"><i class="bi bi-search"></i><strong>No hay platos en esta categoría</strong><span>Selecciona otra categoría para continuar.</span></div>
+              </div>
             </div>
+            </section>
           </div>
 
-          <div class="col-lg-4">
-            <div class="card border-0 shadow-lg order-panel sticky-lg-top">
+          <div class="col-xl-4">
+            <div ref="panelPedido" class="card order-panel sticky-xl-top">
               <div class="card-header bg-white border-0 pt-4 px-4">
                 <h5 class="fw-bold text-dark mb-0">Detalle del Pedido</h5>
               </div>
@@ -186,6 +191,11 @@
             </div>
           </div>
         </div>
+
+        <button v-if="!soloLectura && carrito.length" type="button" class="mobile-cart-jump" @click="irAlResumen">
+          <span><i class="bi bi-basket2"></i>{{ cantidadItems }} {{ cantidadItems === 1 ? 'plato' : 'platos' }}</span>
+          <strong>S/ {{ formatearMonto(totalCalculado) }} <i class="bi bi-arrow-up"></i></strong>
+        </button>
       </main>
     </div>
   </div>
@@ -223,6 +233,7 @@ const errorCarga = ref('');
 const categoriaSeleccionada = ref(0);
 const observacion = ref('');
 const carrito = ref([]);
+const panelPedido = ref(null);
 const alimentos = ref([]);
 const categorias = ref([{ id: 0, nombre: 'Todos' }]);
 
@@ -275,6 +286,7 @@ const totalCalculado = computed(() =>
 );
 const subtotal = computed(() => totalCalculado.value / 1.18);
 const igv = computed(() => totalCalculado.value - subtotal.value);
+const cantidadItems = computed(() => carrito.value.reduce((total, item) => total + item.cantidad, 0));
 
 const cargarDatosBase = async () => {
   cargandoAlimentos.value = true;
@@ -394,6 +406,8 @@ const procesarPedido = async () => {
 const regresar = () => {
   router.push(route.query.origen === 'pedidos' ? '/pedidos' : '/mesas');
 };
+
+const irAlResumen = () => panelPedido.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
 const formatearMonto = (monto) => Number(monto || 0).toFixed(2);
 
@@ -562,5 +576,70 @@ onMounted(cargarDatosBase);
     height: auto;
     min-height: 520px;
   }
+}
+
+.order-editor-page { background: var(--rc-page); min-height: calc(100vh - 68px); padding: 1.25rem 1.5rem 2rem; }
+.order-editor-heading { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: .9rem; }
+.order-editor-title-group { align-items: center; display: flex; gap: .75rem; }
+.order-editor-title-icon { align-items: center; background: linear-gradient(135deg, var(--rc-primary), #e88960); border-radius: 12px; box-shadow: 0 5px 14px rgba(190,80,42,.2); color: #fff; display: flex; flex: 0 0 auto; font-size: 1.1rem; height: 44px; justify-content: center; width: 44px; }
+.order-editor-heading h1 { color: var(--rc-ink); font-size: clamp(1.45rem,2vw,1.8rem); font-weight: 780; letter-spacing: -.035em; margin: 0; }
+.order-editor-heading p { color: var(--rc-muted); font-size: .78rem; margin-top: .18rem; }
+.order-back-button { align-items: center; background: #fff; border: 1px solid var(--rc-border-strong); border-radius: 9px; color: var(--rc-ink-soft); display: inline-flex; font-size: .7rem; font-weight: 700; min-height: 40px; padding: .45rem .7rem; }
+.order-back-button:hover { background: #fbf2ed; border-color: #d28a6d; color: var(--rc-primary-hover); }
+.order-editor-page > .alert { border: 1px solid var(--rc-border); border-radius: 9px; font-size: .7rem; }
+.order-meta-grid { display: grid; gap: .65rem; grid-template-columns: repeat(4,minmax(0,1fr)); margin-bottom: .9rem; }
+.order-meta-grid .contenedor-info { border-radius: 11px; box-shadow: var(--rc-shadow-xs); min-height: 68px; padding: .65rem .75rem; width: 100%; }
+.order-meta-grid .contenedor-info > i { align-items: center; background: var(--rc-primary-soft); border-radius: 8px; color: var(--rc-primary-hover) !important; display: flex; height: 34px; justify-content: center; width: 34px; }
+.menu-selector-card { background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 13px; box-shadow: var(--rc-shadow-xs); min-height: 560px; padding: .85rem; }
+.categories-scroll { margin-bottom: .7rem !important; padding-bottom: .2rem !important; scrollbar-width: none; }
+.categories-scroll::-webkit-scrollbar { display: none; }
+.btn-cat { border-radius: 9px; font-size: .66rem; min-height: 38px; padding: .45rem .75rem; }
+.food-card { background: var(--rc-surface); border-radius: 11px; box-shadow: none !important; }
+.food-img-placeholder { background: linear-gradient(145deg,#f5eee9,#f9f6f3); font-size: 2.2rem; height: 105px; }
+.food-card .card-body { min-height: 80px; padding: .7rem !important; }
+.food-card .card-body > span { font-size: .7rem; }
+.food-card .text-brand { color: var(--rc-primary-hover); }
+.order-panel { background: var(--rc-surface); border-radius: 13px; box-shadow: var(--rc-shadow-sm) !important; overflow: hidden; top: 82px; }
+.order-panel .card-header { background: var(--rc-surface) !important; border-bottom: 1px solid var(--rc-border) !important; padding: .9rem 1rem !important; }
+.order-panel .card-header h5 { color: var(--rc-ink) !important; font-size: .9rem; }
+.order-panel .card-body { padding: .85rem 1rem !important; }
+.order-panel-body { height: min(600px,calc(100vh - 190px)); min-height: 490px; }
+.cart-item { background: #faf7f5; border-radius: 10px !important; padding: .7rem !important; }
+.cart-item .fw-bold { color: var(--rc-ink) !important; font-size: .7rem; }
+.qty-selector { background: #fff; border-color: var(--rc-border) !important; min-height: 32px; }
+.qty-selector button { min-height: 28px; }
+.order-summary textarea { border-color: var(--rc-border); border-radius: 8px; font-size: .66rem; }
+.order-summary .btn-brand { border-radius: 9px !important; font-size: .72rem; min-height: 44px; padding: .6rem !important; }
+.menu-empty { align-items: center; color: var(--rc-muted); display: flex; flex-direction: column; justify-content: center; min-height: 260px; text-align: center; }
+.menu-empty > i { align-items: center; background: var(--rc-primary-soft); border-radius: 50%; color: var(--rc-primary); display: flex; height: 46px; justify-content: center; margin-bottom: .5rem; width: 46px; }
+.menu-empty strong { color: var(--rc-ink); font-size: .75rem; }
+.menu-empty span { font-size: .62rem; margin-top: .15rem; }
+.mobile-cart-jump { display: none; }
+body.dark-theme .menu-selector-card,
+body.dark-theme .order-panel,
+body.dark-theme .order-panel .card-header { background: var(--rc-surface) !important; }
+body.dark-theme .food-img-placeholder,
+body.dark-theme .cart-item,
+body.dark-theme .qty-selector { background: #323233; }
+@media (max-width: 1199.98px) {
+  .order-meta-grid { grid-template-columns: 1fr 1fr; }
+  .order-panel-body { height: auto; min-height: 440px; }
+}
+@media (max-width: 767.98px) {
+  .order-editor-page { padding: 1rem 1rem 5rem; }
+  .order-editor-heading { align-items: flex-start; flex-direction: column; }
+  .order-back-button { width: 100%; }
+  .order-meta-grid { grid-template-columns: 1fr 1fr; }
+  .order-meta-grid .contenedor-info { min-height: 62px; padding: .55rem; }
+  .menu-selector-card { min-height: 420px; padding: .65rem; }
+  .food-img-placeholder { height: 88px; }
+  .order-panel { scroll-margin-top: 72px; }
+  .mobile-cart-jump { align-items: center; background: var(--rc-primary); border: 0; border-radius: 11px; bottom: .75rem; box-shadow: 0 10px 28px rgba(88,42,25,.3); color: #fff; display: flex; font-size: .67rem; justify-content: space-between; left: 1rem; min-height: 50px; padding: .55rem .8rem; position: fixed; right: 1rem; z-index: 1040; }
+  .mobile-cart-jump span { align-items: center; display: flex; gap: .4rem; }
+  .mobile-cart-jump strong { font-size: .72rem; }
+}
+@media (max-width: 390px) {
+  .order-meta-grid { grid-template-columns: 1fr; }
+  .food-card .card-body { min-height: 74px; }
 }
 </style>

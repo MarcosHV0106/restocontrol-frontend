@@ -1,91 +1,88 @@
 <template>
-    <nav
-        class="navbar-custom sticky-top top-0 d-flex justify-content-between align-items-center p-3 bg-white border-bottom shadow-sm">
+  <nav class="navbar-custom" aria-label="Barra superior">
+    <div class="navbar-left">
+      <span class="navbar-date"><i class="bi bi-calendar3"></i>{{ fechaActual }}</span>
+    </div>
 
-        <div class="navbar-left">
-            <div class="d-flex align-items-center bg-light px-3 py-2 rounded-pill text-muted"
-                style="font-size: 0.85rem;">
-                <i class="bi bi-calendar3 me-2"></i>
-                <span>{{ fechaActual }}</span>
-            </div>
+    <div class="navbar-center" @click.stop>
+      <label class="quick-search" for="busquedaRapida">
+        <i class="bi bi-search"></i>
+        <input
+          id="busquedaRapida"
+          v-model.trim="busquedaRapida"
+          type="search"
+          autocomplete="off"
+          placeholder="Ir rápidamente a…"
+          aria-label="Buscar una sección"
+          :aria-expanded="mostrarResultados"
+          aria-controls="quick-search-results"
+          @focus="busquedaActiva = true"
+          @keydown.enter.prevent="abrirPrimeraOpcion"
+          @keydown.esc="cerrarBusqueda"
+        />
+        <kbd>Ctrl K</kbd>
+      </label>
+
+      <div v-if="mostrarResultados" id="quick-search-results" class="quick-results" role="listbox">
+        <button
+          v-for="opcion in opcionesFiltradas"
+          :key="opcion.ruta"
+          type="button"
+          role="option"
+          @click="irARuta(opcion.ruta)"
+        >
+          <span><i :class="opcion.icono"></i></span>
+          <div><strong>{{ opcion.nombre }}</strong><small>{{ opcion.descripcion }}</small></div>
+          <i class="bi bi-arrow-right"></i>
+        </button>
+        <div v-if="opcionesFiltradas.length === 0" class="quick-results-empty">
+          <i class="bi bi-search"></i>No encontramos esa sección.
         </div>
+      </div>
+    </div>
 
-        <div class="navbar-center flex-grow-1 mx-4">
-            <div class="input-group" style="max-width: 350px;">
-                <span class="input-group-text bg-light border-0 rounded-start-pill text-muted">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input type="text" class="form-control bg-light border-0 rounded-end-pill" placeholder="Buscar..."
-                    style="box-shadow: none;" />
-            </div>
-        </div>
+    <div class="navbar-right">
+      <div class="dropdown position-relative">
+        <button
+          type="button"
+          class="navbar-user-button"
+          aria-haspopup="menu"
+          :aria-expanded="menuAbierto"
+          @click.stop="menuAbierto = !menuAbierto"
+          @keydown.esc="menuAbierto = false"
+        >
+          <span class="navbar-avatar">{{ iniciales }}</span>
+          <span class="navbar-user-copy">
+            <strong>{{ usuario?.nombre ? `Hola, ${usuario.nombre}` : 'Hola' }}</strong>
+            <small>{{ nombreRol }}</small>
+          </span>
+          <i class="bi bi-chevron-down" :class="{ 'rotate-180': menuAbierto }"></i>
+        </button>
 
-        <div class="navbar-right d-flex align-items-center gap-4">
-            <i class="bi bi-bell position-relative fs-5 text-muted cursor-pointer">
-                <span
-                    class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-            </i>
-
-            <div class="dropdown position-relative">
-
-                <button type="button" class="navbar-user-button btn p-0 border-0 bg-transparent d-flex align-items-center gap-2"
-                    aria-haspopup="menu" :aria-expanded="menuAbierto" @click.stop="menuAbierto = !menuAbierto" @keydown.esc="menuAbierto = false">
-
-                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center"
-                        style="width: 38px; height: 38px; background: linear-gradient(135deg, #df7a48 0%, #e67e22 100%);">
-                        <i class="bi bi-person fs-5"></i>
-                    </div>
-
-                    <div class="text-end" style="line-height: 1.2;">
-                        <div class="navbar-user-name fs-6">
-                            {{ usuario?.nombre ? 'Hola, ' + usuario.nombre : 'Hola' }}
-                        </div>
-                        <div class="navbar-user-role text-capitalize" style="font-size: 0.75rem;">
-                            {{ usuario?.rol || 'Rol' }}
-                        </div>
-                    </div>
-
-                    <i class="bi bi-chevron-down ms-1 text-muted" :class="{ 'rotate-180': menuAbierto }"
-                        style="font-size: 0.8rem;">
-                    </i>
-
-                </button>
-
-                <ul v-show="menuAbierto" class="dropdown-menu dropdown-menu-end shadow-sm show navbar-account-menu"
-                    role="menu" @click.stop>
-
-                    <li class="navbar-account-summary">
-                        <span class="navbar-menu-avatar">{{ iniciales }}</span>
-                        <span>
-                            <strong>{{ nombreCompleto }}</strong>
-                            <small>{{ usuario?.correo || 'Cuenta de RestoControl' }}</small>
-                        </span>
-                    </li>
-
-                    <li class="navbar-menu-separator">
-                        <button class="dropdown-item small" role="menuitem" @click="irConfiguracion">
-                            <i class="bi bi-sliders2 me-2"></i>
-                            <span><strong>Configuración</strong><small>Seguridad y apariencia</small></span>
-                        </button>
-                    </li>
-
-                    <li>
-                        <button class="dropdown-item small text-danger w-100 text-start" role="menuitem" @click="cerrarSesion">
-                            <i class="bi bi-box-arrow-right me-2"></i>
-                            Cerrar Sesión
-                        </button>
-                    </li>
-
-                </ul>
-
-            </div>
-        </div>
-
-    </nav>
+        <ul v-show="menuAbierto" class="dropdown-menu dropdown-menu-end show navbar-account-menu" role="menu" @click.stop>
+          <li class="navbar-account-summary">
+            <span class="navbar-menu-avatar">{{ iniciales }}</span>
+            <span><strong>{{ nombreCompleto }}</strong><small>{{ usuario?.correo || 'Cuenta de RestoControl' }}</small></span>
+          </li>
+          <li class="navbar-menu-separator">
+            <button class="dropdown-item" role="menuitem" @click="irConfiguracion">
+              <i class="bi bi-sliders2"></i>
+              <span><strong>Configuración</strong><small>Seguridad y apariencia</small></span>
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item text-danger" role="menuitem" @click="cerrarSesion">
+              <i class="bi bi-box-arrow-right"></i><span><strong>Cerrar sesión</strong><small>Salir de RestoControl</small></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
@@ -95,44 +92,81 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const { usuario } = storeToRefs(authStore)
-
 const menuAbierto = ref(false)
+const busquedaActiva = ref(false)
+const busquedaRapida = ref('')
 
+const rolActual = computed(() => String(usuario.value?.rol || '').toUpperCase())
+const nombreRol = computed(() => {
+  const rol = String(usuario.value?.rol || 'Usuario').toLowerCase()
+  return rol.charAt(0).toUpperCase() + rol.slice(1)
+})
 const nombreCompleto = computed(() => {
-    const nombre = [usuario.value?.nombre, usuario.value?.apellido].filter(Boolean).join(' ').trim()
-    return nombre || 'Usuario'
+  const nombre = [usuario.value?.nombre, usuario.value?.apellido].filter(Boolean).join(' ').trim()
+  return nombre || 'Usuario'
 })
 const iniciales = computed(() => nombreCompleto.value.split(/\s+/).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase())
+const fechaActual = computed(() => new Date().toLocaleDateString('es-PE', {
+  weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
+}))
 
-const fechaActual = computed(() => {
-    return new Date().toLocaleDateString('es-PE', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    })
+const navegacion = [
+  { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN'] },
+  { nombre: 'Menú y categorías', descripcion: 'Platos, recetas y categorías', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
+  { nombre: 'Gestión de mesas', descripcion: 'Disponibilidad y atención', ruta: '/mesas', icono: 'bi bi-grid-3x3-gap', roles: ['ADMIN', 'MESERO'] },
+  { nombre: 'Pedidos', descripcion: 'Órdenes del restaurante', ruta: '/pedidos', icono: 'bi bi-receipt', roles: ['ADMIN', 'MESERO'] },
+  { nombre: 'Caja', descripcion: 'Cobros y comprobantes', ruta: '/caja', icono: 'bi bi-wallet2', roles: ['ADMIN', 'MESERO', 'CAJERO'] },
+  { nombre: 'Cocina', descripcion: 'Flujo de preparación', ruta: '/cocina', icono: 'bi bi-fire', roles: ['COCINERO'] },
+  { nombre: 'Usuarios y roles', descripcion: 'Personal y permisos', ruta: '/usuarios', icono: 'bi bi-people', roles: ['ADMIN'] },
+  { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN'] },
+  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'MESERO', 'CAJERO', 'COCINERO'] },
+]
+
+const opcionesPermitidas = computed(() => navegacion.filter((opcion) => opcion.roles.includes(rolActual.value)))
+const opcionesFiltradas = computed(() => {
+  const termino = busquedaRapida.value.toLocaleLowerCase('es')
+  if (!termino) return opcionesPermitidas.value.slice(0, 5)
+  return opcionesPermitidas.value.filter((opcion) => `${opcion.nombre} ${opcion.descripcion}`.toLocaleLowerCase('es').includes(termino)).slice(0, 6)
 })
+const mostrarResultados = computed(() => busquedaActiva.value && Boolean(busquedaRapida.value))
 
-const cerrarMenu = () => {
-    menuAbierto.value = false
+function cerrarMenus() {
+  menuAbierto.value = false
+  busquedaActiva.value = false
+}
+function cerrarBusqueda() {
+  busquedaActiva.value = false
+  busquedaRapida.value = ''
+}
+function irARuta(ruta) {
+  cerrarBusqueda()
+  if (route.path !== ruta) router.push(ruta)
+}
+function abrirPrimeraOpcion() {
+  if (opcionesFiltradas.value[0]) irARuta(opcionesFiltradas.value[0].ruta)
+}
+function manejarAtajo(evento) {
+  if ((evento.ctrlKey || evento.metaKey) && evento.key.toLowerCase() === 'k') {
+    evento.preventDefault()
+    document.getElementById('busquedaRapida')?.focus()
+  }
+}
+function cerrarSesion() {
+  authStore.logout()
+  router.push('/login')
+}
+function irConfiguracion() {
+  menuAbierto.value = false
+  router.push('/configuracion')
 }
 
 onMounted(() => {
-    document.addEventListener('click', cerrarMenu)
+  document.addEventListener('click', cerrarMenus)
+  document.addEventListener('keydown', manejarAtajo)
 })
-
 onBeforeUnmount(() => {
-    document.removeEventListener('click', cerrarMenu)
+  document.removeEventListener('click', cerrarMenus)
+  document.removeEventListener('keydown', manejarAtajo)
 })
-
-watch(() => route.fullPath, cerrarMenu)
-
-function cerrarSesion() {
-    authStore.logout()
-    router.push('/login')
-}
-function irConfiguracion() {
-    menuAbierto.value = false
-    router.push('/configuracion')
-}
+watch(() => route.fullPath, cerrarMenus)
 </script>
