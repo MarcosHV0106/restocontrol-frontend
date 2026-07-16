@@ -1,7 +1,20 @@
 <template>
-    <aside class="sidebar d-flex flex-column flex-shrink-0 bg-white border-end vh-100">
+    <button type="button" class="sidebar-mobile-toggle" aria-label="Abrir menú principal"
+        :aria-expanded="sidebarAbierto" aria-controls="sidebar-principal" @click="sidebarAbierto = true">
+        <i class="bi bi-list"></i>
+    </button>
 
-        <RouterLink to="/dashboard" class="brand-link d-flex align-items-center text-decoration-none p-3 border-bottom">
+    <div v-if="sidebarAbierto" class="sidebar-mobile-backdrop" aria-hidden="true" @click="sidebarAbierto = false"></div>
+
+    <aside id="sidebar-principal" class="sidebar d-flex flex-column flex-shrink-0 bg-white border-end vh-100"
+        :class="{ 'mobile-open': sidebarAbierto }">
+
+        <button type="button" class="sidebar-mobile-close" aria-label="Cerrar menú principal"
+            @click="sidebarAbierto = false">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <RouterLink :to="rutaInicio" class="brand-link d-flex align-items-center text-decoration-none p-3 border-bottom">
             <div class="logo-icon me-3 d-flex align-items-center justify-content-center text-white rounded-circle shadow-sm">
                 <i class="bi bi-shop fs-4"></i>
             </div>
@@ -28,7 +41,7 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item" v-if="['ADMIN', 'MESERO'].includes(rolActual)">
                     <RouterLink to="/mesas" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife me-3 fs-5" viewBox="0 0 16 16">
                             <path d="M13 .5c0-.276-.226-.506-.498-.465-1.703.257-2.94 2.012-3 8.462a.5.5 0 0 0 .498.5c.56.01 1 .13 1 1.003v5.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5zM4.25 0a.25.25 0 0 1 .25.25v5.122a.128.128 0 0 0 .256.006l.233-5.14A.25.25 0 0 1 5.24 0h.522a.25.25 0 0 1 .25.238l.233 5.14a.128.128 0 0 0 .256-.006V.25A.25.25 0 0 1 6.75 0h.29a.5.5 0 0 1 .498.458l.423 5.07a1.69 1.69 0 0 1-1.059 1.711l-.053.022a.92.92 0 0 0-.58.884L6.47 15a.971.971 0 1 1-1.942 0l.202-6.855a.92.92 0 0 0-.58-.884l-.053-.022a1.69 1.69 0 0 1-1.059-1.712L3.462.458A.5.5 0 0 1 3.96 0z"/>
@@ -37,10 +50,17 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item" v-if="['ADMIN', 'MESERO'].includes(rolActual)">
                     <RouterLink to="/pedidos" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-receipt me-3 fs-5"></i>
                         <span>Pedidos</span>
+                    </RouterLink>
+                </li>
+
+                <li class="nav-item" v-if="['ADMIN', 'MESERO', 'CAJERO'].includes(rolActual)">
+                    <RouterLink to="/caja" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-wallet2 me-3 fs-5"></i>
+                        <span>Caja</span>
                     </RouterLink>
                 </li>
 
@@ -81,12 +101,31 @@
 <script setup>
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import '@/assets/css/sidebar.css'
 
 // 1. Instanciamos el store de autenticación
 const authStore = useAuthStore()
+const route = useRoute()
+const sidebarAbierto = ref(false)
 
 // 2. Extraemos el usuario de forma reactiva para que el menú
 // se actualice instantáneamente si cambia la sesión
 const { usuario: usuarioActual } = storeToRefs(authStore)
+const rolActual = computed(() => String(usuarioActual.value?.rol || '').toUpperCase())
+const rutaInicio = computed(() => {
+    if (rolActual.value === 'ADMIN') return '/dashboard'
+    return rolActual.value === 'CAJERO' ? '/caja' : '/mesas'
+})
+
+watch(() => route.fullPath, () => {
+    sidebarAbierto.value = false
+})
+
+watch(sidebarAbierto, (abierto) => {
+    document.body.classList.toggle('sidebar-mobile-open', abierto)
+})
+
+onBeforeUnmount(() => document.body.classList.remove('sidebar-mobile-open'))
 </script>

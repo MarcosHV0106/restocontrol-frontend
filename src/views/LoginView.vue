@@ -275,9 +275,11 @@ async function iniciarSesion() {
       router.push('/dashboard')
     } else if (rolUsuario === 'MESERO') {
       router.push('/mesas')
+    } else if (rolUsuario === 'CAJERO') {
+      router.push('/caja')
     } else {
       // Ruta por defecto por si en el futuro agregas más roles (ej. CAJERO)
-      router.push('/dashboard')
+      router.push('/login')
     }
 
   } catch (error) {

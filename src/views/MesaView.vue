@@ -141,6 +141,12 @@
                                         <i class="bi bi-receipt me-2"></i>Ver / Editar Pedido
                                     </button>
 
+                                    <button
+                                        v-if="mesaSeleccionada.pedido && (mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar')"
+                                        class="btn btn-outline-primary py-2" @click="irACaja">
+                                        <i class="bi bi-wallet2 me-2"></i>Ir a Caja
+                                    </button>
+
                                     <button class="btn btn-light border py-2"
                                         v-if="mesaSeleccionada.estadoMesa.descripcion === 'libre'" @click="abrirUnion">
                                         Unir con otra mesa
@@ -411,6 +417,14 @@ const abrirPedidoSeleccionado = () => {
             numeroMesa: mesaSeleccionada.value.numeroMesa,
             origen: 'mesas'
         }
+    });
+};
+
+const irACaja = () => {
+    if (!mesaSeleccionada.value?.pedido) return;
+    router.push({
+        path: '/caja',
+        query: { idPedido: mesaSeleccionada.value.pedido.idPedido }
     });
 };
 

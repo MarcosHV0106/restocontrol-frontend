@@ -54,7 +54,7 @@
                 <ul v-show="menuAbierto" class="dropdown-menu dropdown-menu-end shadow-sm show"
                     style="border: 1px solid #e8e0d7; border-radius: 12px; min-width: 250px;">
 
-                    <li class="border-bottom">
+                    <li v-if="puedeConfigurar" class="border-bottom">
                         <a class="dropdown-item small" href="#">
                             <i class="bi bi-person-gear me-2"></i> Mi Perfil
                         </a>
@@ -94,6 +94,7 @@ const authStore = useAuthStore()
 const menuAbierto = ref(false)
 
 const usuario = JSON.parse(localStorage.getItem('usuario')) || {}
+const puedeConfigurar = computed(() => String(usuario.rol || '').toUpperCase() !== 'CAJERO')
 
 const fechaActual = computed(() => {
     return new Date().toLocaleDateString('es-PE', {
@@ -120,11 +121,6 @@ function cerrarSesion() {
     authStore.logout()
     router.push('/login')
 }
-function irPerfil() {
-    menuAbierto.value = false
-    router.push('/perfil')
-}
-
 function irConfiguracion() {
     menuAbierto.value = false
     router.push('/configuracion')

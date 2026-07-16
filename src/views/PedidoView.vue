@@ -106,10 +106,20 @@
                     </span>
                   </td>
                   <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary text-nowrap" @click="abrirPedido(pedido)">
-                      <i :class="['bi me-1', pedidoCerrado(pedido) ? 'bi-eye' : 'bi-pencil-square']"></i>
-                      {{ pedidoCerrado(pedido) ? 'Ver detalle' : 'Ver / Editar' }}
-                    </button>
+                    <div class="d-flex justify-content-end flex-wrap gap-2">
+                      <button
+                        v-if="!pedidoCerrado(pedido)"
+                        class="btn btn-sm btn-primary text-nowrap"
+                        @click="irACaja(pedido)"
+                      >
+                        <i class="bi bi-wallet2 me-1"></i>
+                        Cobrar
+                      </button>
+                      <button class="btn btn-sm btn-outline-primary text-nowrap" @click="abrirPedido(pedido)">
+                        <i :class="['bi me-1', pedidoCerrado(pedido) ? 'bi-eye' : 'bi-pencil-square']"></i>
+                        {{ pedidoCerrado(pedido) ? 'Ver detalle' : 'Ver / Editar' }}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -187,6 +197,10 @@ const abrirPedido = (pedido) => {
       origen: 'pedidos',
     },
   });
+};
+
+const irACaja = (pedido) => {
+  router.push({ path: '/caja', query: { idPedido: pedido.idPedido } });
 };
 
 const nombreCreador = (pedido) => {
