@@ -34,7 +34,7 @@ const routes = [
     { path: '/pedidos', name: 'pedidos', component: PedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
     { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
     { path: '/caja', name: 'caja', component: CajaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
-    { path: '/configuracion', name: 'configuracion', component: ConfiguracionView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } }
+    { path: '/configuracion', name: 'configuracion', component: ConfiguracionView, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

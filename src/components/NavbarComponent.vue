@@ -29,7 +29,7 @@
             <div class="dropdown position-relative">
 
                 <button type="button" class="navbar-user-button btn p-0 border-0 bg-transparent d-flex align-items-center gap-2"
-                    @click.stop="menuAbierto = !menuAbierto">
+                    aria-haspopup="menu" :aria-expanded="menuAbierto" @click.stop="menuAbierto = !menuAbierto" @keydown.esc="menuAbierto = false">
 
                     <div class="rounded-circle text-white d-flex align-items-center justify-content-center"
                         style="width: 38px; height: 38px; background: linear-gradient(135deg, #df7a48 0%, #e67e22 100%);">
@@ -51,24 +51,26 @@
 
                 </button>
 
-                <ul v-show="menuAbierto" class="dropdown-menu dropdown-menu-end shadow-sm show"
-                    style="border: 1px solid #e8e0d7; border-radius: 12px; min-width: 250px;">
+                <ul v-show="menuAbierto" class="dropdown-menu dropdown-menu-end shadow-sm show navbar-account-menu"
+                    role="menu" @click.stop>
 
-                    <li v-if="puedeConfigurar" class="border-bottom">
-                        <a class="dropdown-item small" href="#">
-                            <i class="bi bi-person-gear me-2"></i> Mi Perfil
-                        </a>
+                    <li class="navbar-account-summary">
+                        <span class="navbar-menu-avatar">{{ iniciales }}</span>
+                        <span>
+                            <strong>{{ nombreCompleto }}</strong>
+                            <small>{{ usuario?.correo || 'Cuenta de RestoControl' }}</small>
+                        </span>
                     </li>
 
-                    <li v-if="puedeConfigurar" class="border-bottom">
-                        <button class="dropdown-item small" @click="irConfiguracion">
-                            <i class="bi bi-gear me-2"></i>
-                            Configuración
+                    <li class="navbar-menu-separator">
+                        <button class="dropdown-item small" role="menuitem" @click="irConfiguracion">
+                            <i class="bi bi-sliders2 me-2"></i>
+                            <span><strong>Configuración</strong><small>Seguridad y apariencia</small></span>
                         </button>
                     </li>
 
                     <li>
-                        <button class="dropdown-item small text-danger w-100 text-start" @click="cerrarSesion">
+                        <button class="dropdown-item small text-danger w-100 text-start" role="menuitem" @click="cerrarSesion">
                             <i class="bi bi-box-arrow-right me-2"></i>
                             Cerrar Sesión
                         </button>
@@ -83,18 +85,24 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import '@/assets/css/navbar.css'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+const { usuario } = storeToRefs(authStore)
 
 const menuAbierto = ref(false)
 
-const usuario = JSON.parse(localStorage.getItem('usuario')) || {}
-const puedeConfigurar = computed(() => ['ADMIN', 'MESERO'].includes(String(usuario.rol || '').toUpperCase()))
+const nombreCompleto = computed(() => {
+    const nombre = [usuario.value?.nombre, usuario.value?.apellido].filter(Boolean).join(' ').trim()
+    return nombre || 'Usuario'
+})
+const iniciales = computed(() => nombreCompleto.value.split(/\s+/).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase())
 
 const fechaActual = computed(() => {
     return new Date().toLocaleDateString('es-PE', {
@@ -116,6 +124,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('click', cerrarMenu)
 })
+
+watch(() => route.fullPath, cerrarMenu)
 
 function cerrarSesion() {
     authStore.logout()

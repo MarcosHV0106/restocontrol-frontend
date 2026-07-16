@@ -158,6 +158,113 @@
     margin-top: 0.5rem;
 }
 
+.navbar-account-menu {
+    border: 1px solid var(--border-light) !important;
+    border-radius: 12px !important;
+    min-width: 270px !important;
+    overflow: hidden;
+    padding: 0.4rem !important;
+}
+
+.navbar-account-summary {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.65rem 0.6rem 0.75rem !important;
+}
+
+.navbar-menu-avatar {
+    align-items: center;
+    background: linear-gradient(135deg, #df7a48, #e89168);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    flex: 0 0 auto;
+    font-size: 0.7rem;
+    font-weight: 800;
+    height: 36px;
+    justify-content: center;
+    width: 36px;
+}
+
+.navbar-account-summary > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.navbar-account-summary strong {
+    color: var(--dark-text);
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar-account-summary small {
+    color: var(--light-text);
+    font-size: 0.62rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar-menu-separator {
+    border-bottom: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-light);
+    padding: 0.35rem 0 !important;
+}
+
+.navbar-account-menu .dropdown-item {
+    align-items: center;
+    border-radius: 8px !important;
+    display: flex;
+    min-height: 40px;
+}
+
+.navbar-account-menu .dropdown-item > span {
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-account-menu .dropdown-item strong {
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.navbar-account-menu .dropdown-item small {
+    color: #93867f;
+    font-size: 0.56rem;
+}
+
+.navbar-account-menu .dropdown-item:hover {
+    border-radius: 8px;
+    padding-left: 1rem;
+}
+
+body.dark-theme .navbar-account-menu {
+    background: #303030;
+    border-color: #484848 !important;
+}
+
+body.dark-theme .navbar-account-summary strong,
+body.dark-theme .navbar-account-menu .dropdown-item {
+    color: #f3f0ee;
+}
+
+body.dark-theme .navbar-account-summary small,
+body.dark-theme .navbar-account-menu .dropdown-item small {
+    color: #bab3af;
+}
+
+body.dark-theme .navbar-menu-separator {
+    border-color: #484848;
+}
+
+body.dark-theme .navbar-account-menu .dropdown-item:hover {
+    background: #3b3532;
+}
+
 .dropdown-menu li {
     padding: 0;
 }

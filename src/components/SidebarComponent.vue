@@ -85,13 +85,6 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
-                    <RouterLink to="/configuracion" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-gear me-3 fs-5"></i>
-                        <span>Configuración</span>
-                    </RouterLink>
-                </li>
-
             </ul>
         </div>
 
