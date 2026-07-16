@@ -11,6 +11,7 @@ import PedidoView from '@/views/PedidoView.vue'
 import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
 import ConfiguracionView from '@/views/ConfiguracionView.vue'
 import ReporteView from '@/views/ReporteView.vue'
+import CajaView from '@/views/CajaView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -28,6 +29,7 @@ const routes = [
     { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
     { path: '/pedidos', name: 'pedidos', component: PedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
     { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
+    { path: '/caja', name: 'caja', component: CajaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
     { path: '/configuracion', name: 'configuracion', component: ConfiguracionView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } }
 ]
 
@@ -55,7 +57,8 @@ router.beforeEach((to) => {
     // 2. Si ya está logueado e intenta ir al login -> A su página principal
     if (requiresGuest && isAuthenticated) {
         const userRole = authStore.usuario?.rol?.toUpperCase()
-        return userRole === 'ADMIN' ? '/dashboard' : '/mesas'
+        if (userRole === 'ADMIN') return '/dashboard'
+        return userRole === 'CAJERO' ? '/caja' : '/mesas'
     }
 
     // 3. VERIFICACIÓN DE ROLES (RBAC)
@@ -71,6 +74,8 @@ router.beforeEach((to) => {
             // Lo devolvemos a una ruta segura dependiendo de su rol
             if (userRole === 'MESERO') {
                 return '/mesas'
+            } else if (userRole === 'CAJERO') {
+                return '/caja'
             } else {
                 return '/dashboard'
             }

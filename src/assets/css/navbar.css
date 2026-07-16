@@ -215,14 +215,14 @@
 
 @media (max-width: 768px) {
     .navbar-custom {
-        padding: 0.75rem 1rem !important;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: 0.5rem;
+        min-height: 62px;
+        padding: 0.65rem 0.75rem 0.65rem 4.15rem !important;
     }
 
     .navbar-left {
-        width: 100%;
-        order: 1;
+        display: none;
     }
 
     .navbar-center {
@@ -231,18 +231,23 @@
     }
 
     .navbar-right {
-        width: 100%;
-        order: 2;
-        justify-content: space-between;
+        gap: 0.75rem !important;
+        justify-content: flex-end;
+        margin-left: auto;
+        width: auto;
     }
 
-    #userDropdownToggle .text-end {
+    .navbar-right > .bi-bell {
         display: none;
     }
 
-    #userDropdownToggle .rounded-circle {
+    .navbar-user-button .rounded-circle {
         width: 36px;
         height: 36px;
+    }
+
+    .navbar-user-name {
+        font-size: 0.85rem !important;
     }
 }
 
