@@ -64,6 +64,13 @@
                     </RouterLink>
                 </li>
 
+                <li class="nav-item" v-if="rolActual === 'COCINERO'">
+                    <RouterLink to="/cocina" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-fire me-3 fs-5"></i>
+                        <span>Cocina</span>
+                    </RouterLink>
+                </li>
+
                 <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
                     <RouterLink to="/usuarios" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-people me-3 fs-5"></i>
@@ -116,6 +123,7 @@ const { usuario: usuarioActual } = storeToRefs(authStore)
 const rolActual = computed(() => String(usuarioActual.value?.rol || '').toUpperCase())
 const rutaInicio = computed(() => {
     if (rolActual.value === 'ADMIN') return '/dashboard'
+    if (rolActual.value === 'COCINERO') return '/cocina'
     return rolActual.value === 'CAJERO' ? '/caja' : '/mesas'
 })
 
