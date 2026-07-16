@@ -55,6 +55,7 @@
                                     <th class="ps-4 py-3">Nombre</th>
                                     <th class="py-3">Categoria</th>
                                     <th class="py-3">Precio (S/)</th>
+                                    <th class="py-3">Costo receta (S/)</th>
                                     <th class="py-3 text-center">Estado</th>
                                     <th class="pe-4 py-3 text-end">Acciones</th>
                                 </tr>
@@ -82,6 +83,11 @@
                                         </span>
                                     </td>
                                     <td class="py-3 fw-medium">{{ formatearPrecio(alimento.precio) }}</td>
+                                    <td class="py-3 fw-medium">
+                                        <span :class="Number(alimento.costoReceta) > 0 ? 'text-success' : 'text-warning'">
+                                            {{ formatearPrecio(alimento.costoReceta) }}
+                                        </span>
+                                    </td>
                                     <td class="py-3 text-center">
                                         <span class="badge rounded-pill px-3 py-2"
                                               :class="alimento.disponible ? 'badge-soft-green' : 'bg-secondary text-white'">
@@ -89,6 +95,11 @@
                                         </span>
                                     </td>
                                     <td class="pe-4 py-3 text-end">
+                                        <button class="btn btn-sm text-muted p-1 me-1"
+                                                @click="abrirReceta(alimento)"
+                                                title="Configurar receta y costos">
+                                            <i class="bi bi-card-checklist fs-5"></i>
+                                        </button>
                                         <button class="btn btn-sm text-muted p-1 me-1"
                                                 @click="editarAlimento(alimento)"
                                                 title="Editar alimento">
@@ -102,7 +113,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="alimentosFiltrados.length === 0">
-                                        <td colspan="5" class="text-center py-5 text-muted">
+                                        <td colspan="6" class="text-center py-5 text-muted">
                                             <div class="spinner-border" role="status">
                                                 <span class="visually-hidden">Cargando...</span>
                                             </div>
@@ -271,6 +282,100 @@
             </div>
         </div>
 
+        <div class="modal fade" id="recetaAlimentoModal" tabindex="-1" aria-labelledby="recetaAlimentoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg receta-modal">
+                    <div class="modal-header">
+                        <div>
+                            <h4 class="modal-title fw-bold" id="recetaAlimentoModalLabel">Receta de {{ recetaAlimento.nombre }}</h4>
+                            <p class="text-muted small mb-0">Indica cuánto insumo consume una unidad del plato y su costo por unidad de medida.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="receta-nuevo-insumo mb-4">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Registrar insumo rápido</h6>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Nombre</label>
+                                    <input v-model="nuevoInsumo.nombreInsumo" class="form-control" placeholder="Ej: Arroz">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Unidad de medida</label>
+                                    <input v-model="nuevoInsumo.unidadMedida" class="form-control" placeholder="kg, litro, unidad...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Costo por unidad (S/)</label>
+                                    <input v-model.number="nuevoInsumo.costoUnitario" type="number" min="0.0001" step="0.0001" class="form-control" placeholder="0.0000">
+                                </div>
+                                <div class="col-md-2 d-grid">
+                                    <button class="btn btn-outline-dark" :disabled="guardandoInsumo" @click="registrarInsumoRapido">
+                                        <span v-if="guardandoInsumo" class="spinner-border spinner-border-sm"></span>
+                                        <span v-else><i class="bi bi-plus-lg me-1"></i>Agregar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="cargandoReceta" class="text-center py-5">
+                            <div class="spinner-border text-secondary"></div>
+                            <p class="text-muted mt-2">Cargando insumos...</p>
+                        </div>
+
+                        <div v-else class="table-responsive receta-tabla-wrap">
+                            <table class="table align-middle mb-0 receta-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Usar</th>
+                                        <th>Insumo</th>
+                                        <th>Unidad</th>
+                                        <th>Costo por unidad (S/)</th>
+                                        <th>Cantidad por plato</th>
+                                        <th class="text-end">Subtotal (S/)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="fila in filasReceta" :key="fila.idInsumo" :class="{ 'receta-fila-inactiva': !fila.seleccionado }">
+                                        <td class="text-center">
+                                            <input v-model="fila.seleccionado" class="form-check-input" type="checkbox" :aria-label="`Usar ${fila.nombreInsumo}`">
+                                        </td>
+                                        <td class="fw-semibold">{{ fila.nombreInsumo }}</td>
+                                        <td><span class="badge text-bg-light">{{ fila.unidadMedida }}</span></td>
+                                        <td>
+                                            <input v-model.number="fila.costoUnitario" :disabled="!fila.seleccionado" type="number" min="0.0001" step="0.0001" class="form-control form-control-sm receta-input">
+                                        </td>
+                                        <td>
+                                            <input v-model.number="fila.cantidad" :disabled="!fila.seleccionado" type="number" min="0.0001" step="0.0001" class="form-control form-control-sm receta-input">
+                                        </td>
+                                        <td class="text-end fw-semibold">{{ formatearCostoReceta(fila) }}</td>
+                                    </tr>
+                                    <tr v-if="filasReceta.length === 0">
+                                        <td colspan="6" class="text-center text-muted py-4">Aún no hay insumos. Registra el primero en el formulario superior.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="receta-total mt-3">
+                            <span>Costo teórico por plato</span>
+                            <strong>S/ {{ costoTotalReceta }}</strong>
+                        </div>
+
+                        <div v-if="errorReceta" class="alert alert-danger mt-3 mb-0">{{ errorReceta }}</div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" :disabled="guardandoReceta || cargandoReceta" @click="guardarReceta">
+                            <span v-if="guardandoReceta" class="spinner-border spinner-border-sm me-1"></span>
+                            Guardar receta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="registrarCategoriaModal" tabindex="-1" aria-labelledby="registrarCategoriaModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
                 <div class="modal-content border-0 p-3 shadow-lg" style="border-radius: 16px;">
@@ -334,6 +439,7 @@ import * as menuService from '@/services/menuService'
 const tabActual = ref('alimentos')
 const alimentos = ref([])
 const categorias = ref([])
+const insumos = ref([])
 const busquedaAlimento = ref('')
 const busquedaCategoria = ref('')
 
@@ -342,6 +448,13 @@ const modoEdicionAlimento = ref(false)
 const alimentoEditandoId = ref(null)
 const modoEdicion = ref(false)
 const categoriaEditandoId = ref(null)
+const recetaAlimento = ref({ idAlimento: null, nombre: '' })
+const filasReceta = ref([])
+const cargandoReceta = ref(false)
+const guardandoReceta = ref(false)
+const guardandoInsumo = ref(false)
+const errorReceta = ref('')
+const nuevoInsumo = ref({ nombreInsumo: '', unidadMedida: '', costoUnitario: '' })
 
 const nuevoAlimento = ref({
     nombreAlimento: '', descripcion: '', precio: '', disponible: true, idCategoria: ''
@@ -353,6 +466,10 @@ const nuevaCategoria = ref({
 
 // ================= PROPIEDADES COMPUTADAS =================
 const categoriasActivas = computed(() => categorias.value)
+const costoTotalReceta = computed(() => filasReceta.value
+    .filter(fila => fila.seleccionado)
+    .reduce((total, fila) => total + Number(fila.cantidad || 0) * Number(fila.costoUnitario || 0), 0)
+    .toFixed(2))
 
 const alimentosFiltrados = computed(() => {
     const termino = busquedaAlimento.value.trim().toLowerCase()
@@ -377,6 +494,10 @@ const categoriasFiltradas = computed(() => {
 const formatearPrecio = (precio) => {
     return precio ? parseFloat(precio).toFixed(2) : '0.00'
 }
+
+const formatearCostoReceta = fila => (
+    Number(fila.cantidad || 0) * Number(fila.costoUnitario || 0)
+).toFixed(2)
 
 const contarAlimentosPorCategoria = (idCategoria) => {
     return alimentos.value.filter(a => a.categoria && a.categoria.idCategoria === idCategoria).length
@@ -464,6 +585,99 @@ const procederEliminarAlimento = async (id) => {
     }
 }
 
+const cargarFilasReceta = async () => {
+    const [listaInsumos, recetaActual] = await Promise.all([
+        menuService.obtenerInsumos(),
+        menuService.obtenerReceta(recetaAlimento.value.idAlimento)
+    ])
+    insumos.value = listaInsumos
+    const cantidades = new Map(recetaActual.map(detalle => [detalle.idInsumo, detalle.cantidad]))
+    filasReceta.value = listaInsumos.map(insumo => ({
+        ...insumo,
+        seleccionado: cantidades.has(insumo.idInsumo),
+        cantidad: cantidades.get(insumo.idInsumo) || '',
+        costoUnitario: Number(insumo.costoUnitario || 0)
+    }))
+}
+
+const abrirReceta = async alimento => {
+    recetaAlimento.value = { idAlimento: alimento.idAlimento, nombre: alimento.nombreAlimento }
+    errorReceta.value = ''
+    cargandoReceta.value = true
+    const modal = new bootstrap.Modal(document.getElementById('recetaAlimentoModal'))
+    modal.show()
+    try {
+        await cargarFilasReceta()
+    } catch (error) {
+        console.error('No se pudo cargar la receta:', error)
+        errorReceta.value = 'No fue posible cargar los insumos y la receta.'
+    } finally {
+        cargandoReceta.value = false
+    }
+}
+
+const registrarInsumoRapido = async () => {
+    errorReceta.value = ''
+    const costo = Number(nuevoInsumo.value.costoUnitario)
+    if (!nuevoInsumo.value.nombreInsumo.trim() || !nuevoInsumo.value.unidadMedida.trim() || costo <= 0) {
+        errorReceta.value = 'Completa el nombre, la unidad y un costo unitario mayor a cero.'
+        return
+    }
+    guardandoInsumo.value = true
+    try {
+        await menuService.crearInsumo({
+            nombreInsumo: nuevoInsumo.value.nombreInsumo.trim(),
+            unidadMedida: nuevoInsumo.value.unidadMedida.trim(),
+            stockActual: 0,
+            stockMinimo: 0,
+            costoUnitario: costo
+        })
+        nuevoInsumo.value = { nombreInsumo: '', unidadMedida: '', costoUnitario: '' }
+        await cargarFilasReceta()
+    } catch (error) {
+        console.error('No se pudo registrar el insumo:', error)
+        errorReceta.value = error.response?.data?.message || 'No fue posible registrar el insumo.'
+    } finally {
+        guardandoInsumo.value = false
+    }
+}
+
+const guardarReceta = async () => {
+    errorReceta.value = ''
+    const seleccionados = filasReceta.value.filter(fila => fila.seleccionado)
+    if (seleccionados.length === 0) {
+        errorReceta.value = 'Selecciona al menos un insumo para la receta.'
+        return
+    }
+    if (seleccionados.some(fila => Number(fila.cantidad) <= 0 || Number(fila.costoUnitario) <= 0)) {
+        errorReceta.value = 'Todos los insumos seleccionados deben tener cantidad y costo mayores a cero.'
+        return
+    }
+
+    guardandoReceta.value = true
+    try {
+        await Promise.all(seleccionados.map(fila => menuService.actualizarInsumo(fila.idInsumo, {
+            idInsumo: fila.idInsumo,
+            nombreInsumo: fila.nombreInsumo,
+            unidadMedida: fila.unidadMedida,
+            stockActual: fila.stockActual,
+            stockMinimo: fila.stockMinimo,
+            costoUnitario: Number(fila.costoUnitario)
+        })))
+        await menuService.reemplazarReceta(recetaAlimento.value.idAlimento, seleccionados.map(fila => ({
+            idInsumo: fila.idInsumo,
+            cantidad: Number(fila.cantidad)
+        })))
+        await cargarDatos()
+        cerrarModalVisual('recetaAlimentoModal')
+    } catch (error) {
+        console.error('No se pudo guardar la receta:', error)
+        errorReceta.value = error.response?.data?.message || 'No fue posible guardar la receta.'
+    } finally {
+        guardandoReceta.value = false
+    }
+}
+
 // --- Gestión Categorías ---
 const abrirModalCategoriaNueva = () => {
     modoEdicion.value = false
@@ -526,6 +740,58 @@ onMounted(() => {
 /* Transiciones base si deseas mantener el efecto suave al cambiar pestañas */
 .tab-pane-fade-in {
     animation: fadeIn 0.25s ease-in-out;
+}
+.receta-modal {
+    border-radius: 16px;
+}
+.receta-nuevo-insumo {
+    padding: 16px;
+    border: 1px solid #e8e1da;
+    border-radius: 12px;
+    background: #faf8f5;
+}
+.receta-tabla-wrap {
+    border: 1px solid #ece7e2;
+    border-radius: 10px;
+}
+.receta-tabla th {
+    padding: 12px;
+    background: #f5f2ee;
+    color: #5e5852;
+    font-size: .78rem;
+    text-transform: uppercase;
+}
+.receta-tabla td {
+    padding: 10px 12px;
+}
+.receta-fila-inactiva {
+    opacity: .55;
+}
+.receta-input {
+    min-width: 115px;
+}
+.receta-total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 12px;
+    color: #666;
+}
+.receta-total strong {
+    color: #2c1a11;
+    font-size: 1.4rem;
+}
+body.dark-theme .receta-nuevo-insumo,
+body.dark-theme .receta-tabla th {
+    border-color: #494949;
+    background: #353535;
+    color: #eee;
+}
+body.dark-theme .receta-tabla-wrap {
+    border-color: #494949;
+}
+body.dark-theme .receta-total strong {
+    color: #fff;
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }

@@ -22,6 +22,31 @@ export async function eliminarAlimento(id) {
     return response.data
 }
 
+export async function obtenerReceta(idAlimento) {
+    const response = await api.get(`/alimentos/${idAlimento}/receta`)
+    return response.data
+}
+
+export async function reemplazarReceta(idAlimento, receta) {
+    const response = await api.put(`/alimentos/${idAlimento}/receta`, receta)
+    return response.data
+}
+
+export async function obtenerInsumos() {
+    const response = await api.get('/insumos')
+    return response.data
+}
+
+export async function crearInsumo(insumo) {
+    const response = await api.post('/insumos', insumo)
+    return response.data
+}
+
+export async function actualizarInsumo(id, insumo) {
+    const response = await api.put(`/insumos/${id}`, insumo)
+    return response.data
+}
+
 
 // ================= SERVICIOS DE CATEGORÍAS =================
 

@@ -10,6 +10,7 @@ import MesaView from '@/views/MesaView.vue'
 import PedidoView from '@/views/PedidoView.vue'
 import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
 import ConfiguracionView from '@/views/ConfiguracionView.vue'
+import ReporteView from '@/views/ReporteView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -21,6 +22,7 @@ const routes = [
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
 
     // Rutas compartidas (ADMIN y MESERO pueden entrar)
     { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
