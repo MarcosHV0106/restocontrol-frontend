@@ -136,9 +136,9 @@
                                     </button>
 
                                     <button
-                                        v-if="mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar'"
-                                        class="btn btn-success py-2" @click="cobrarPedidoAction">
-                                        Generar Cobro
+                                        v-if="mesaSeleccionada.pedido && (mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar')"
+                                        class="btn btn-primary-resto py-2 text-white" @click="abrirPedidoSeleccionado">
+                                        <i class="bi bi-receipt me-2"></i>Ver / Editar Pedido
                                     </button>
 
                                     <button class="btn btn-light border py-2"
@@ -165,8 +165,8 @@
                                 </div>
                                 <div v-else class="text-center py-5 text-muted border rounded-3 bg-light"
                                     style="border-style: dashed !important;">
-                                    <i class="bi bi-cup-hot d-block fs-1 mb-2 text-secondary"></i>
-                                    Mesa disponible sin consumo
+                                    <i class="bi bi-shield-lock d-block fs-1 mb-2 text-secondary"></i>
+                                    {{ mensajeMesaSinPedido }}
                                 </div>
                             </div>
                         </div>
@@ -259,7 +259,6 @@ import SidebarComponent from '@/components/SidebarComponent.vue';
 
 // Servicios
 import { obtenerMesas, crearMesa, actualizarMesa, obtenerMesaPorId } from '@/services/mesaService';
-import api from '@/services/api';
 
 const router = useRouter();
 
@@ -394,30 +393,33 @@ const confirmarAperturaMesa = () => {
     // 🌟 AHORA REDIRIGE AL NUEVO POS INTERACTIVO
     router.push({
         path: '/nuevo-pedido',
-        query: { idMesa: mesaSeleccionada.value.idMesa }
+        query: {
+            idMesa: mesaSeleccionada.value.idMesa,
+            numeroMesa: mesaSeleccionada.value.numeroMesa,
+            origen: 'mesas'
+        }
     });
 };
 
-const cobrarPedidoAction = async () => {
-    if (!mesaSeleccionada.value.pedido) {
-        alert("No hay pedido para cobrar");
-        return;
-    }
-
-    try {
-        const idPedido = mesaSeleccionada.value.pedido.idPedido;
-        // Asumiendo que tu endpoint en SpringBoot es este:
-        await api.put(`/pedidos/${idPedido}/cobrar`);
-
-        alert("Pedido cobrado y mesa liberada correctamente.");
-        await listar();
-        mesaSeleccionada.value = null;
-
-    } catch (error) {
-        console.error("Error al cobrar:", error);
-        alert("No se pudo cobrar el pedido. Verifique conexión.");
-    }
+const abrirPedidoSeleccionado = () => {
+    if (!mesaSeleccionada.value?.pedido) return;
+    router.push({
+        path: '/nuevo-pedido',
+        query: {
+            idPedido: mesaSeleccionada.value.pedido.idPedido,
+            idMesa: mesaSeleccionada.value.idMesa,
+            numeroMesa: mesaSeleccionada.value.numeroMesa,
+            origen: 'mesas'
+        }
+    });
 };
+
+const mensajeMesaSinPedido = computed(() => {
+    if (mesaSeleccionada.value?.estadoMesa?.descripcion === 'libre') {
+        return 'Mesa disponible sin consumo';
+    }
+    return 'El pedido de esta mesa pertenece a otro mesero';
+});
 
 const abrirUnion = () => {
     alert("Función de unir mesas en desarrollo para la próxima versión de Vue.");

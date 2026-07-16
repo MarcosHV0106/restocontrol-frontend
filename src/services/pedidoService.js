@@ -21,6 +21,16 @@ export default {
     }
   },
 
+  async getPedidoPorId(idPedido) {
+    try {
+      const response = await api.get(`/pedidos/${idPedido}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching pedido by id:', error);
+      throw error;
+    }
+  },
+
   async updatePedido(id, updatedData) {
     try {
       const response = await api.put(`/pedidos/${id}`, updatedData);
@@ -31,16 +41,6 @@ export default {
     }
   },
 
-  async deletePedido(id) {
-    try {
-      await api.delete(`/pedidos/${id}`);
-    } catch (error) {
-      console.error('Error deleting pedido:', error);
-      throw error;
-    }
-  },
-
-  // NUEVO: Obtener el pedido actual de una mesa
   async getPedidoPorMesa(idMesa) {
     try {
       const response = await api.get(`/pedidos/mesa/${idMesa}`);
