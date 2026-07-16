@@ -12,6 +12,7 @@ import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
 import ConfiguracionView from '@/views/ConfiguracionView.vue'
 import ReporteView from '@/views/ReporteView.vue'
 import CajaView from '@/views/CajaView.vue'
+import CocinaView from '@/views/CocinaView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -24,6 +25,9 @@ const routes = [
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+
+    // Ruta exclusiva para el personal de cocina
+    { path: '/cocina', name: 'cocina', component: CocinaView, meta: { requiresAuth: true, roles: ['COCINERO'] } },
 
     // Rutas compartidas (ADMIN y MESERO pueden entrar)
     { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
@@ -58,6 +62,7 @@ router.beforeEach((to) => {
     if (requiresGuest && isAuthenticated) {
         const userRole = authStore.usuario?.rol?.toUpperCase()
         if (userRole === 'ADMIN') return '/dashboard'
+        if (userRole === 'COCINERO') return '/cocina'
         return userRole === 'CAJERO' ? '/caja' : '/mesas'
     }
 
@@ -76,6 +81,8 @@ router.beforeEach((to) => {
                 return '/mesas'
             } else if (userRole === 'CAJERO') {
                 return '/caja'
+            } else if (userRole === 'COCINERO') {
+                return '/cocina'
             } else {
                 return '/dashboard'
             }

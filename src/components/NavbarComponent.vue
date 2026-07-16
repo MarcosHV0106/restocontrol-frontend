@@ -60,7 +60,7 @@
                         </a>
                     </li>
 
-                    <li class="border-bottom">
+                    <li v-if="puedeConfigurar" class="border-bottom">
                         <button class="dropdown-item small" @click="irConfiguracion">
                             <i class="bi bi-gear me-2"></i>
                             Configuración
@@ -94,7 +94,7 @@ const authStore = useAuthStore()
 const menuAbierto = ref(false)
 
 const usuario = JSON.parse(localStorage.getItem('usuario')) || {}
-const puedeConfigurar = computed(() => String(usuario.rol || '').toUpperCase() !== 'CAJERO')
+const puedeConfigurar = computed(() => ['ADMIN', 'MESERO'].includes(String(usuario.rol || '').toUpperCase()))
 
 const fechaActual = computed(() => {
     return new Date().toLocaleDateString('es-PE', {
