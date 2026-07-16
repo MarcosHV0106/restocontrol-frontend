@@ -9,6 +9,7 @@ import App from './App.vue'
 import router from './router'
 
 import { inicializarTema } from '@/services/temaService'
+import '@/assets/css/foundation.css'
 import '@/assets/css/tema.css'
 
 inicializarTema()

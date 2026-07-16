@@ -12,9 +12,12 @@
         </nav>
 
         <header class="caja-heading">
-          <div>
+          <div class="caja-title-group">
+            <span class="caja-title-icon"><i class="bi bi-wallet2"></i></span>
+            <div>
             <h1>Caja · Cobro</h1>
             <p>Revisa el pedido, configura el pago y confirma la operación.</p>
+            </div>
           </div>
           <button class="btn btn-outline-secondary refresh-button" :disabled="cargandoPendientes" @click="cargarPendientes">
             <span v-if="cargandoPendientes" class="spinner-border spinner-border-sm"></span>
@@ -76,13 +79,13 @@
               </thead>
               <tbody>
                 <tr v-for="cuenta in pendientesFiltrados" :key="cuenta.idPedido">
-                  <td><strong>#{{ cuenta.idPedido }}</strong></td>
-                  <td><span class="table-pill"><i class="bi bi-layout-text-window-reverse"></i> Mesa {{ cuenta.mesa?.numeroMesa ?? '-' }}</span></td>
-                  <td>{{ nombreUsuario(cuenta.usuario) }}</td>
-                  <td class="text-nowrap">{{ fechaCorta(cuenta.fechaPedido) }}</td>
-                  <td class="text-nowrap text-muted">{{ tiempoTranscurrido(cuenta.fechaPedido) }}</td>
-                  <td class="text-end total-cell">S/ {{ moneda(cuenta.total) }}</td>
-                  <td class="text-end">
+                  <td data-label="Pedido"><strong>#{{ cuenta.idPedido }}</strong></td>
+                  <td data-label="Mesa"><span class="table-pill"><i class="bi bi-layout-text-window-reverse"></i> Mesa {{ cuenta.mesa?.numeroMesa ?? '-' }}</span></td>
+                  <td data-label="Responsable">{{ nombreUsuario(cuenta.usuario) }}</td>
+                  <td data-label="Inicio" class="text-nowrap">{{ fechaCorta(cuenta.fechaPedido) }}</td>
+                  <td data-label="Tiempo" class="text-nowrap text-muted">{{ tiempoTranscurrido(cuenta.fechaPedido) }}</td>
+                  <td data-label="Total" class="text-end total-cell">S/ {{ moneda(cuenta.total) }}</td>
+                  <td data-label="Acción" class="text-end">
                     <button class="btn btn-sm btn-primary select-order" @click="seleccionarPedido(cuenta.idPedido)">
                       Revisar y cobrar
                       <i class="bi bi-arrow-right"></i>

@@ -1,33 +1,33 @@
 <template>
-    <div class="layout">
+    <div class="layout mesa-layout">
         <SidebarComponent />
 
         <div class="main-content">
             <NavbarComponent />
 
-            <main class="container-fluid p-4 main-container-mesas">
-                <div class="d-flex justify-content-between align-items-end mb-4">
-                    <div class="page-header">
-                        <h2 class="page-title">
-                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>
-                            Gestión de Mesas
-                        </h2>
+            <main class="main-container-mesas mesa-page">
+                <header class="mesa-heading">
+                    <div class="mesa-title-group">
+                        <span class="mesa-title-icon"><i class="bi bi-grid-3x3-gap-fill"></i></span>
+                        <div><h1>Gestión de mesas</h1><p>Administra el salón y supervisa la atención en tiempo real.</p></div>
+                    </div>
+                    <div class="mesa-heading-actions">
+                        <button class="btn mesa-refresh-button" :disabled="cargandoMesas" @click="listar" aria-label="Actualizar mesas">
+                            <span v-if="cargandoMesas" class="spinner-border spinner-border-sm"></span>
+                            <i v-else class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button class="btn btn-primary-resto mesa-new-button" @click="nuevo">
+                            <i class="bi bi-plus-lg"></i>Nueva mesa
+                        </button>
+                    </div>
+                </header>
 
-                        <p class="page-subtitle">
-                            Administra las mesas y supervisa el estado del salón en tiempo real.
-                        </p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-refresh btn-light border" @click="listar">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        <button class="btn btn-primary-resto shadow-sm" @click="nuevo">
-                            <i class="bi bi-plus-lg me-2"></i>Nueva Mesa
-                        </button>
-                    </div>
+                <div v-if="errorMesas" class="mesa-alert" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorMesas }}</span>
+                    <button type="button" @click="listar">Reintentar</button>
                 </div>
 
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mesa-kpis">
                     <div class="col-6 col-md-3" v-for="(val, key) in resumenCalculado" :key="key">
                         <div :class="['card-kpi', key]">
                             <div class="kpi-content">
@@ -41,7 +41,7 @@
                     </div>
                 </div>
 
-                <div class="card card-filters mb-4 border-0 shadow-sm">
+                <div class="card card-filters mesa-filters">
                     <div class="card-body p-3">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-4">
@@ -51,14 +51,14 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;"
+                                <select class="form-select-modern"
                                     v-model="filtros.piso">
                                     <option value="">Todos los sectores / Pisos</option>
                                     <option v-for="p in pisos" :key="p" :value="p">Piso {{ p }}</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select-modern w-100 p-2 border rounded" style="background:#f8f9fa;"
+                                <select class="form-select-modern"
                                     v-model="filtros.estado">
                                     <option value="">Todos los estados</option>
                                     <option value="libre">Libre</option>
@@ -68,28 +68,30 @@
                                 </select>
                             </div>
                             <div class="col-md-2 text-end">
-                                <button class="btn btn-link text-decoration-none text-muted" @click="limpiarFiltros">
-                                    Limpiar
+                                <button class="mesa-clear-filters" :disabled="!hayFiltros" @click="limpiarFiltros">
+                                    <i class="bi bi-x-circle"></i>Limpiar
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div :class="mesaSeleccionada ? 'col-lg-8' : 'col-lg-12'" class="transition-all"
-                        style="transition: all 0.3s ease;">
+                <div class="row g-3 mesa-workspace">
+                    <div :class="mesaSeleccionada ? 'col-xl-8' : 'col-12'" class="transition-all">
+                        <div v-if="cargandoMesas && !entidades.length" class="mesa-loading">
+                            <span class="spinner-border"></span><strong>Preparando el salón</strong><small>Consultando el estado de las mesas…</small>
+                        </div>
                         <div class="mesa-grid">
                             <div v-for="mesa in mesasFiltradas" :key="mesa.idMesa"
                                 :class="['mesa-card-v2', mesa.estadoMesa.descripcion, { 'active': mesaSeleccionada?.idMesa === mesa.idMesa }]"
-                                @click="seleccionarMesa(mesa)">
+                                role="button" tabindex="0" :aria-label="`Mesa ${mesa.numeroMesa}, ${mesa.estadoMesa.descripcion}`"
+                                @click="seleccionarMesa(mesa)" @keydown.enter="seleccionarMesa(mesa)" @keydown.space.prevent="seleccionarMesa(mesa)">
                                 <div class="mesa-badge-status">{{ mesa.estadoMesa.descripcion }}</div>
 
                                 <div class="mesa-body">
-                                    <div
-                                        class="mesa-circle d-flex flex-column align-items-center justify-content-center">
-                                        <i class="bi bi-cup-hot-fill mb-1" style="font-size: 1.4rem; opacity: 0.9;"></i>
-                                        <span class="m-num lh-1" style="font-size: 1.2rem;">{{ mesa.numeroMesa }}</span>
+                                    <div class="mesa-circle d-flex flex-column align-items-center justify-content-center">
+                                        <i class="bi bi-cup-hot-fill"></i>
+                                        <span class="m-num">{{ mesa.numeroMesa }}</span>
                                     </div>
 
                                     <div class="mesa-info mt-2">
@@ -105,10 +107,13 @@
                                 </div>
                             </div>
                         </div>
+                        <div v-if="!cargandoMesas && mesasFiltradas.length === 0" class="mesa-empty">
+                            <span><i class="bi bi-search"></i></span><strong>No encontramos mesas</strong><p>Ajusta los filtros para volver a visualizar el salón.</p><button @click="limpiarFiltros">Limpiar filtros</button>
+                        </div>
                     </div>
 
-                    <div class="col-lg-4" v-if="mesaSeleccionada">
-                        <div class="card border-0 shadow-sm panel-detalle-v2 sticky-top" style="top: 20px;">
+                    <div class="col-xl-4" v-if="mesaSeleccionada">
+                        <div class="card panel-detalle-v2">
                             <div
                                 class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                                 <h4 class="fw-bold mb-0">Mesa {{ mesaSeleccionada.numeroMesa }}</h4>
@@ -169,8 +174,7 @@
                                             Number(mesaSeleccionada.pedido.total).toFixed(2) }}</span>
                                     </div>
                                 </div>
-                                <div v-else class="text-center py-5 text-muted border rounded-3 bg-light"
-                                    style="border-style: dashed !important;">
+                                <div v-else class="mesa-no-order">
                                     <i class="bi bi-shield-lock d-block fs-1 mb-2 text-secondary"></i>
                                     {{ mensajeMesaSinPedido }}
                                 </div>
@@ -274,6 +278,8 @@ const mesaSeleccionada = ref(null);
 const filtros = ref({ busqueda: '', piso: '', estado: '' });
 
 const cantidadPersonas = ref(1);
+const cargandoMesas = ref(true);
+const errorMesas = ref('');
 
 // Estado para creación/edición de una mesa
 const entidad = ref({
@@ -299,6 +305,7 @@ const mesasFiltradas = computed(() => {
 });
 
 const pisos = computed(() => [...new Set(entidades.value.filter(m => !m.eliminado).map(m => m.piso))].sort());
+const hayFiltros = computed(() => Boolean(filtros.value.busqueda || filtros.value.piso || filtros.value.estado));
 
 const resumenCalculado = computed(() => {
     const activas = entidades.value.filter(m => !m.eliminado);
@@ -313,6 +320,8 @@ const resumenCalculado = computed(() => {
 // --- MÉTODOS ---
 
 const listar = async () => {
+    cargandoMesas.value = true;
+    errorMesas.value = '';
     try {
         entidades.value = await obtenerMesas();
 
@@ -324,6 +333,9 @@ const listar = async () => {
 
     } catch (e) {
         console.error("Error al listar mesas:", e);
+        errorMesas.value = e.response?.data?.mensaje || 'No se pudo consultar el estado del salón.';
+    } finally {
+        cargandoMesas.value = false;
     }
 };
 

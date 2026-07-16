@@ -1,6 +1,6 @@
 <template>
     <div class="login-page">
-        <div class="login-container">
+        <div class="login-container activation-container">
             <div class="login-card activation-card">
                 <div class="card-header">
                     <div class="logo-wrapper">
@@ -10,7 +10,7 @@
                     <h1 class="titulo">RestoControl</h1>
 
                     <p class="subtitulo">
-                        Crea tu contrasena para activar tu cuenta
+                        Crea tu contraseña para activar tu cuenta
                     </p>
                 </div>
 
@@ -28,7 +28,7 @@
                     @submit.prevent="crearClave">
 
                     <p class="activation-description">
-                        Hola {{ nombreCompleto }}, define una contrasena segura para terminar la activacion de tu cuenta.
+                        Hola {{ nombreCompleto }}, define una contraseña segura para terminar la activación de tu cuenta.
                     </p>
 
                     <div class="form-group password-group">
@@ -37,7 +37,7 @@
                             for="passwordInput">
 
                             <i class="bi bi-lock"></i>
-                            Contrasena
+                            Contraseña
 
                         </label>
 
@@ -45,13 +45,15 @@
                             id="passwordInput"
                             v-model="clave"
                             :type="showPassword ? 'text' : 'password'"
+                            autocomplete="new-password"
                             class="form-control password-input"
-                            placeholder="Minimo 6 caracteres"
+                            placeholder="Mínimo 6 caracteres"
                             required>
 
                         <button
                             type="button"
                             class="toggle-password"
+                            :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                             @click="showPassword = !showPassword">
 
                             <i
@@ -72,7 +74,7 @@
                             for="confirmPasswordInput">
 
                             <i class="bi bi-check2-circle"></i>
-                            Confirmar contrasena
+                            Confirmar contraseña
 
                         </label>
 
@@ -80,13 +82,15 @@
                             id="confirmPasswordInput"
                             v-model="confirmacionClave"
                             :type="showConfirmPassword ? 'text' : 'password'"
+                            autocomplete="new-password"
                             class="form-control password-input"
-                            placeholder="Repite tu contrasena"
+                            placeholder="Repite tu contraseña"
                             required>
 
                         <button
                             type="button"
                             class="toggle-password"
+                            :aria-label="showConfirmPassword ? 'Ocultar confirmación' : 'Mostrar confirmación'"
                             @click="showConfirmPassword = !showConfirmPassword">
 
                             <i
@@ -123,7 +127,7 @@
                         {{
                             isLoading
                                 ? 'Activando cuenta...'
-                                : 'Crear contrasena'
+                                : 'Crear contraseña'
                         }}
 
                     </button>

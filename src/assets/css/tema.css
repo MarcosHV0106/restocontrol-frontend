@@ -477,3 +477,166 @@ body.dark-theme .btn-white:hover{
     background:#474747;
 
 }
+
+/* ==========================================================
+   COBERTURA DE LOS MÓDULOS MODERNOS
+========================================================== */
+body.dark-theme {
+    --dashboard-page: var(--rc-page);
+    --dashboard-ink: var(--rc-ink);
+    --dashboard-muted: var(--rc-muted);
+    --dashboard-border: var(--rc-border);
+    --kitchen-page: var(--rc-page);
+    --kitchen-ink: var(--rc-ink);
+    --kitchen-muted: var(--rc-muted);
+    --kitchen-border: var(--rc-border);
+    --caja-page: var(--rc-page);
+    --caja-ink: var(--rc-ink);
+    --caja-muted: var(--rc-muted);
+    --caja-border: var(--rc-border);
+    --caja-soft: #302d2c;
+}
+
+body.dark-theme .dashboard-kpi,
+body.dark-theme .dashboard-report-card,
+body.dark-theme .kitchen-toolbar,
+body.dark-theme .kitchen-loading,
+body.dark-theme .kitchen-summary,
+body.dark-theme .kitchen-order,
+body.dark-theme .filters-empty,
+body.dark-theme .pending-card,
+body.dark-theme .detail-card,
+body.dark-theme .payment-card-main,
+body.dark-theme .caja-loading,
+body.dark-theme .order-meta,
+body.dark-theme .confirm-dialog,
+body.dark-theme .success-dialog,
+body.dark-theme .preferences-dialog {
+    background: var(--rc-surface);
+    border-color: var(--rc-border);
+}
+
+body.dark-theme .dashboard-kpi strong,
+body.dark-theme .report-title-line h2,
+body.dark-theme .report-loading strong,
+body.dark-theme .kitchen-loading strong,
+body.dark-theme .column-header h2,
+body.dark-theme .order-number strong,
+body.dark-theme .order-items li,
+body.dark-theme .order-items li strong,
+body.dark-theme .kitchen-summary strong,
+body.dark-theme .filters-empty strong,
+body.dark-theme .pending-card__header h2,
+body.dark-theme .card-title-row h2,
+body.dark-theme .payment-title h2,
+body.dark-theme .pending-table td,
+body.dark-theme .detail-table td,
+body.dark-theme .detail-table td strong,
+body.dark-theme .order-meta strong,
+body.dark-theme .order-totals strong,
+body.dark-theme .confirm-dialog h2,
+body.dark-theme .success-dialog h2,
+body.dark-theme .confirm-dialog dd,
+body.dark-theme .receipt-preview {
+    color: var(--rc-ink);
+}
+
+body.dark-theme .period-badge,
+body.dark-theme .dashboard-secondary-button,
+body.dark-theme .report-card-actions button,
+body.dark-theme .report-card-actions a,
+body.dark-theme .report-card-footer,
+body.dark-theme .powerbi-container,
+body.dark-theme .kitchen-column,
+body.dark-theme .column-header,
+body.dark-theme .column-count,
+body.dark-theme .kitchen-search,
+body.dark-theme .mesa-filter,
+body.dark-theme .toolbar-button,
+body.dark-theme .pending-toolbar,
+body.dark-theme .search-field,
+body.dark-theme .pending-table th,
+body.dark-theme .detail-table th,
+body.dark-theme .table-pill,
+body.dark-theme .meta-icon,
+body.dark-theme .quantity-badge,
+body.dark-theme .confirm-dialog dl,
+body.dark-theme .receipt-preview,
+body.dark-theme .order-note {
+    background: #323233;
+    border-color: var(--rc-border);
+}
+
+body.dark-theme .report-loading {
+    background: linear-gradient(145deg, #2b2a2a, #242425);
+}
+
+body.dark-theme .kitchen-search input,
+body.dark-theme .mesa-filter select,
+body.dark-theme .search-field input,
+body.dark-theme .standard-input,
+body.dark-theme .input-with-prefix,
+body.dark-theme .input-with-icon,
+body.dark-theme .input-with-prefix input,
+body.dark-theme .input-with-icon input {
+    color: var(--rc-ink);
+}
+
+body.dark-theme .input-with-prefix input,
+body.dark-theme .input-with-icon input,
+body.dark-theme .standard-input {
+    background: #323233;
+    border-color: var(--rc-border-strong);
+}
+
+body.dark-theme .field-label,
+body.dark-theme .payment-fields legend,
+body.dark-theme .cash-grid label > span,
+body.dark-theme .change-box span {
+    color: var(--rc-ink-soft);
+}
+
+body.dark-theme .detail-table,
+body.dark-theme .pending-table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--rc-border);
+    --bs-table-color: var(--rc-ink);
+}
+
+body.dark-theme .detail-table td,
+body.dark-theme .pending-table td {
+    background: transparent !important;
+}
+
+body.dark-theme .column-recibido,
+body.dark-theme .column-en_preparacion,
+body.dark-theme .column-listo,
+body.dark-theme .column-entregado,
+body.dark-theme .column-recibido .column-header,
+body.dark-theme .column-en_preparacion .column-header,
+body.dark-theme .column-listo .column-header,
+body.dark-theme .column-entregado .column-header {
+    background: #2c2c2d;
+    border-color: var(--rc-border);
+}
+
+body.dark-theme .order-observation,
+body.dark-theme .theme-note {
+    background: #3a3327;
+    border-color: #5d4d2e;
+    color: #e5ca88;
+}
+
+body.dark-theme .choice-grid label,
+body.dark-theme .split-trigger,
+body.dark-theme .change-box,
+body.dark-theme .amount-due {
+    background: #323233;
+    border-color: var(--rc-border);
+    color: var(--rc-ink);
+}
+
+body.dark-theme .choice-grid label.active {
+    background: #3c302b;
+    border-color: #c56b48;
+}

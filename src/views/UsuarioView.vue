@@ -1,17 +1,32 @@
 <template>
-    <div class="layout">
+    <div class="layout management-layout">
         <SidebarComponent />
 
         <div class="main-content">
             <NavbarComponent />
 
-            <main class="p-4 p-md-5">
-                    <h2 class="fw-bold mb-1">Usuarios y Roles</h2>
-                    <p class="text-muted mb-4">
-                        Gestiona cuentas del personal y permisos por rol.
-                    </p>
+            <main class="management-page people-page">
+                    <header class="management-heading">
+                        <div class="management-title-group">
+                            <span class="management-title-icon"><i class="bi bi-people"></i></span>
+                            <div><h1>Usuarios y roles</h1><p>Gestiona al personal, el acceso y la estructura de permisos.</p></div>
+                        </div>
+                        <span class="management-count"><i class="bi bi-shield-check"></i>Administración segura</span>
+                    </header>
 
-                    <div class="tabs-container mb-4">
+                    <section class="management-summary" aria-label="Resumen de usuarios">
+                        <article><i class="bi bi-people"></i><div><span>Usuarios</span><strong>{{ usuarios.length }}</strong></div></article>
+                        <article><i class="bi bi-person-check"></i><div><span>Activos</span><strong>{{ usuariosActivos }}</strong></div></article>
+                        <article><i class="bi bi-envelope-check"></i><div><span>Pendientes</span><strong>{{ usuariosPendientes }}</strong></div></article>
+                        <article><i class="bi bi-person-badge"></i><div><span>Roles</span><strong>{{ roles.length }}</strong></div></article>
+                    </section>
+
+                    <div v-if="errorDatos" class="management-error alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorDatos }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" @click="recargarDatos">Reintentar</button>
+                    </div>
+
+                    <div class="tabs-container management-tabs">
                         <button class="btn px-4 py-2 border-0"
                                 :class="{ active: tabActiva === 'usuarios' }"
                                 @click="tabActiva = 'usuarios'">
@@ -25,24 +40,23 @@
                     </div>
 
                     <section v-if="tabActiva === 'usuarios'">
-                        <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-                            <div class="input-group bg-white" style="width: 100%; max-width: 500px; border-radius: 8px; border: 1px solid #f0e6da;">
+                        <div class="management-toolbar">
+                            <div class="input-group management-search">
                                 <span class="input-group-text bg-transparent border-0">
                                     <i class="bi bi-search text-muted"></i>
                                 </span>
                                 <input type="text"
                                        class="form-control border-0 bg-transparent"
                                        placeholder="Buscar usuario..."
-                                       v-model="busquedaUsuario"
-                                       style="box-shadow: none;">
+                                       v-model="busquedaUsuario">
                             </div>
-                            <button class="btn btn-brand rounded-3 px-4 py-2 fw-medium"
+                            <button class="btn btn-brand management-primary px-3"
                                     @click="abrirRegistrarUsuario">
                                 <i class="bi bi-plus-lg me-1"></i> Registrar Usuario
                             </button>
                         </div>
 
-                        <div class="custom-table-card shadow-sm">
+                        <div class="custom-table-card management-table-card">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
@@ -55,7 +69,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="usuario in usuariosFiltrados" :key="usuario.idUsuario">
-                                        <td class="ps-4 py-3 fw-bold">
+                                        <td data-label="Usuario" class="ps-4 py-3 fw-bold">
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background-color: var(--brand-color);">
                                                     <i class="bi bi-person"></i>
@@ -63,19 +77,19 @@
                                                 <span>{{ usuario.nombre }} {{ usuario.apellido }}</span>
                                             </div>
                                         </td>
-                                        <td class="py-3 text-muted">{{ usuario.correo }}</td>
-                                        <td class="py-3">
+                                        <td data-label="Correo" class="py-3 text-muted">{{ usuario.correo }}</td>
+                                        <td data-label="Rol" class="py-3">
                                             <span class="badge rounded-pill badge-soft-blue px-3 py-2">
                                                 {{ usuario.rol ? usuario.rol.nombreRol : 'Sin rol' }}
                                             </span>
                                         </td>
-                                        <td class="py-3">
+                                        <td data-label="Estado" class="py-3">
                                             <span class="badge rounded-pill px-3 py-2"
                                                   :class="claseEstadoCuenta(usuario)">
                                                 {{ obtenerEstadoCuenta(usuario) }}
                                             </span>
                                         </td>
-                                        <td class="pe-4 py-3 text-end">
+                                        <td data-label="Acciones" class="pe-4 py-3 text-end">
                                             <button v-if="obtenerEstadoCuenta(usuario) === 'PENDIENTE'"
                                                     class="btn btn-sm text-muted p-1 me-1"
                                                     @click="reenviarInvitacion(usuario)"
@@ -94,12 +108,9 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    <tr v-if="usuariosFiltrados.length === 0">
-                                        <td colspan="5" class="text-center py-5 text-muted">
-                                            <div class="spinner-border" role="status">
-                                                <span class="visually-hidden">Cargando...</span>
-                                            </div>
-                                        </td>
+                                    <tr v-if="cargandoUsuarios"><td colspan="5" class="management-empty"><span class="spinner-border spinner-border-sm"></span> Cargando usuarios…</td></tr>
+                                    <tr v-else-if="usuariosFiltrados.length === 0">
+                                        <td colspan="5" class="management-empty"><i class="bi bi-search"></i><strong>No encontramos usuarios</strong><span>Prueba con otro término o registra uno nuevo.</span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -107,24 +118,23 @@
                     </section>
 
                     <section v-if="tabActiva === 'roles'">
-                        <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-                            <div class="input-group bg-white" style="width: 100%; max-width: 500px; border-radius: 8px; border: 1px solid #f0e6da;">
+                        <div class="management-toolbar">
+                            <div class="input-group management-search">
                                 <span class="input-group-text bg-transparent border-0">
                                     <i class="bi bi-search text-muted"></i>
                                 </span>
                                 <input type="text"
                                        class="form-control border-0 bg-transparent"
                                        placeholder="Buscar rol..."
-                                       v-model="busquedaRol"
-                                       style="box-shadow: none;">
+                                       v-model="busquedaRol">
                             </div>
-                            <button class="btn btn-brand rounded-3 px-4 py-2 fw-medium"
+                            <button class="btn btn-brand management-primary px-3"
                                     @click="abrirRegistrarRol">
                                 <i class="bi bi-plus-lg me-1"></i> Registrar Rol
                             </button>
                         </div>
 
-                        <div class="custom-table-card shadow-sm">
+                        <div class="custom-table-card management-table-card">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
@@ -136,14 +146,14 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="rol in rolesFiltrados" :key="rol.idRol">
-                                        <td class="ps-4 py-3 fw-bold">{{ rol.nombreRol }}</td>
-                                        <td class="py-3 text-muted">{{ rol.descripcion }}</td>
-                                        <td class="py-3 text-center">
+                                        <td data-label="Rol" class="ps-4 py-3 fw-bold">{{ rol.nombreRol }}</td>
+                                        <td data-label="Descripción" class="py-3 text-muted">{{ rol.descripcion }}</td>
+                                        <td data-label="Usuarios" class="py-3 text-center">
                                             <span class="badge rounded-pill badge-soft-orange px-3 py-2">
                                                 {{ contarUsuariosPorRol(rol.idRol) }}
                                             </span>
                                         </td>
-                                        <td class="pe-4 py-3 text-end">
+                                        <td data-label="Acciones" class="pe-4 py-3 text-end">
                                             <button class="btn btn-sm text-muted p-1 me-1"
                                                     @click="abrirEditarRol(rol)"
                                                     title="Editar rol">
@@ -156,12 +166,9 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    <tr v-if="rolesFiltrados.length === 0">
-                                        <td colspan="5" class="text-center py-5 text-muted">
-                                            <div class="spinner-border" role="status">
-                                                <span class="visually-hidden">Cargando...</span>
-                                            </div>
-                                        </td>
+                                    <tr v-if="cargandoRoles"><td colspan="4" class="management-empty"><span class="spinner-border spinner-border-sm"></span> Cargando roles…</td></tr>
+                                    <tr v-else-if="rolesFiltrados.length === 0">
+                                        <td colspan="4" class="management-empty"><i class="bi bi-search"></i><strong>No encontramos roles</strong><span>Prueba con otro término o registra uno nuevo.</span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -178,6 +185,7 @@
                         <h4 class="modal-title fw-bold" id="usuarioModalLabel" style="color: #2c1a04; font-size: 1.4rem;">
                             {{ modoEdicionUsuario ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}
                         </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
 
                     <div class="modal-body py-3">
@@ -238,6 +246,7 @@
                         <h4 class="modal-title fw-bold" id="rolModalLabel" style="color: #2c1a04; font-size: 1.4rem;">
                             {{ modoEdicionRol ? 'Editar Rol' : 'Registrar Nuevo Rol' }}
                         </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
 
                     <div class="modal-body py-3">
@@ -275,6 +284,7 @@ import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import SidebarComponent from '@/components/SidebarComponent.vue';
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import * as usuarioService from '@/services/usuarioService.js';
+import '@/assets/css/management.css';
 
 // --- Estado (Refs) ---
 const tabActiva = ref('usuarios');
@@ -286,6 +296,9 @@ const modoEdicionUsuario = ref(false);
 const usuarioEditandoId = ref(null);
 const modoEdicionRol = ref(false);
 const rolEditandoId = ref(null);
+const cargandoUsuarios = ref(true);
+const cargandoRoles = ref(true);
+const errorDatos = ref('');
 
 const nuevoUsuario = ref({
     nombre: '',
@@ -330,6 +343,9 @@ const rolesFiltrados = computed(() => {
     });
 });
 
+const usuariosActivos = computed(() => usuarios.value.filter(usuario => obtenerEstadoCuenta(usuario) === 'ACTIVO').length);
+const usuariosPendientes = computed(() => usuarios.value.filter(usuario => obtenerEstadoCuenta(usuario) === 'PENDIENTE').length);
+
 // --- Métodos de Carga (API) ---
 const obtenerEstadoCuenta = (usuario) => {
     if (usuario.estadoCuenta) return usuario.estadoCuenta;
@@ -347,19 +363,33 @@ const claseEstadoCuenta = (usuario) => {
 };
 
 const cargarUsuarios = async () => {
+    cargandoUsuarios.value = true;
     try {
         usuarios.value = await usuarioService.obtenerUsuarios();
     } catch (error) {
         console.error('Error cargando usuarios:', error);
+        errorDatos.value = error.response?.data?.mensaje || 'No se pudieron cargar los usuarios y roles.';
+    } finally {
+        cargandoUsuarios.value = false;
     }
 };
 
 const cargarRoles = async () => {
+    cargandoRoles.value = true;
     try {
         roles.value = await usuarioService.obtenerRoles();
     } catch (error) {
         console.error('Error cargando roles:', error);
+        errorDatos.value = error.response?.data?.mensaje || 'No se pudieron cargar los usuarios y roles.';
+    } finally {
+        cargandoRoles.value = false;
     }
+};
+
+const recargarDatos = () => {
+    errorDatos.value = '';
+    cargarUsuarios();
+    cargarRoles();
 };
 
 // --- Control de Modales (Limpieza Absoluta de Backdrop) ---

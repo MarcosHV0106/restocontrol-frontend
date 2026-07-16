@@ -2,6 +2,18 @@
 
     <div class="login-page">
         <div class="login-container">
+            <section class="login-brand-panel" aria-label="RestoControl">
+                <div class="login-brand-mark"><i class="bi bi-shop"></i><span>RestoControl</span></div>
+                <span class="login-brand-kicker">Gestión gastronómica inteligente</span>
+                <h2>Todo tu restaurante,<br>en perfecto orden.</h2>
+                <p>Coordina salón, cocina, caja e indicadores desde una experiencia diseñada para trabajar con agilidad.</p>
+                <ul>
+                    <li><i class="bi bi-check2"></i>Operación conectada en tiempo real</li>
+                    <li><i class="bi bi-check2"></i>Información clara para cada rol</li>
+                    <li><i class="bi bi-check2"></i>Decisiones respaldadas por datos</li>
+                </ul>
+                <small>RestoControl · Sistema de gestión para restaurantes</small>
+            </section>
 
             <div class="login-card">
 
@@ -37,6 +49,7 @@
                             @focus="showEmailSuggestions = true"
                             @blur="ocultarSugerencias"
                             type="email"
+                            autocomplete="username"
                             class="form-control"
                             placeholder="tu@correo.com"
                             required>
@@ -82,6 +95,7 @@
                             id="passwordInput"
                             v-model="clave"
                             :type="showPassword ? 'text' : 'password'"
+                            autocomplete="current-password"
                             class="form-control password-input"
                             placeholder="••••••••"
                             required>
@@ -89,6 +103,7 @@
                         <button
                             type="button"
                             class="toggle-password"
+                            :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                             @click="showPassword = !showPassword">
 
                             <i

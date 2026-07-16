@@ -13,6 +13,8 @@
 .caja-breadcrumb a { color: #a85332; font-weight: 650; text-decoration: none; }
 .caja-breadcrumb i { font-size: 0.62rem; }
 .caja-heading { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.4rem; }
+.caja-title-group { align-items: center; display: flex; gap: .75rem; }
+.caja-title-icon { align-items: center; background: linear-gradient(135deg, var(--caja-primary), #e88960); border-radius: 12px; box-shadow: 0 5px 14px rgba(190,80,42,.2); color: #fff; display: flex; flex: 0 0 auto; font-size: 1.1rem; height: 44px; justify-content: center; width: 44px; }
 .caja-heading h1 { color: var(--caja-ink); font-size: clamp(1.55rem, 2.3vw, 2rem); font-weight: 780; letter-spacing: -0.035em; margin: 0 0 0.25rem; }
 .caja-heading p { color: var(--caja-muted); margin: 0; }
 .refresh-button { align-items: center; display: flex; gap: 0.45rem; }
@@ -185,6 +187,15 @@
   .detail-table td { padding-left: 0.7rem; padding-right: 0.7rem; }
   .detail-table th:nth-child(3),
   .detail-table td:nth-child(3) { display: none; }
+  .pending-card .table-responsive { overflow: visible; }
+  .pending-table thead { display: none; }
+  .pending-table tbody { display: grid; gap: 0.7rem; padding: 0.75rem; }
+  .pending-table tbody tr { background: var(--rc-surface); border: 1px solid var(--caja-border); border-radius: 11px; display: block; padding: 0.35rem 0.7rem; }
+  .pending-table tbody td { align-items: center; border-bottom: 1px solid var(--caja-border); display: flex; gap: 0.7rem; justify-content: space-between; padding: 0.5rem 0; text-align: right !important; white-space: normal !important; }
+  .pending-table tbody td::before { color: var(--caja-muted); content: attr(data-label); flex: 0 0 31%; font-size: 0.55rem; font-weight: 750; letter-spacing: 0.03em; text-align: left; text-transform: uppercase; }
+  .pending-table tbody td:last-child { border-bottom: 0; }
+  .pending-table .select-order { justify-content: center; width: 100%; }
+  .caja-title-group { align-items: flex-start; }
 }
 
 @media print {
