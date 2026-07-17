@@ -13,6 +13,7 @@ import ConfiguracionView from '@/views/ConfiguracionView.vue'
 import ReporteView from '@/views/ReporteView.vue'
 import CajaView from '@/views/CajaView.vue'
 import CocinaView from '@/views/CocinaView.vue'
+import InventarioView from '@/views/InventarioView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -23,6 +24,7 @@ const routes = [
     // Rutas exclusivas para ADMIN
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
 

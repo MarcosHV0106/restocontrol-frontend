@@ -41,6 +41,17 @@
                     </RouterLink>
                 </li>
 
+                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                    <RouterLink to="/inventario" class="nav-link custom-link d-flex align-items-center fw-medium"
+                        active-class="active">
+
+                        <i class="bi bi-box-seam me-3 fs-5"></i>
+
+                        <span>Inventario</span>
+
+                    </RouterLink>
+                </li>
+
                 <li class="nav-item" v-if="['ADMIN', 'MESERO'].includes(rolActual)">
                     <RouterLink to="/mesas" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife me-3 fs-5" viewBox="0 0 16 16">
