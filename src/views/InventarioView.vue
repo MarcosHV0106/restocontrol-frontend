@@ -18,7 +18,7 @@
             </p>
           </div>
 
-          <button class="btn btn-success" @click="nuevoInsumo">
+          <button class="btn btn-primary-custom" @click="nuevoInsumo">
 
             <i class="bi bi-plus-circle me-2"></i>
 
@@ -77,9 +77,9 @@
                     <td>{{ insumo.fechaVencimiento }}</td>
 
                     <td>
-
-                      Activo
-
+                      <span class="badge" :class="obtenerClaseEstado(insumo)">
+                        {{ obtenerEstado(insumo) }}
+                      </span>
                     </td>
 
                     <td class="text-center">
@@ -156,7 +156,7 @@
                 Nombre
               </label>
 
-              <input class="form-control" maxlength="100" v-model.trim="insumo.nombreInsumo">
+              <input class="form-control" maxlength="100" v-model.trim="insumo.nombreInsumo" @input="filtrarNombre" />
 
             </div>
 
@@ -202,8 +202,7 @@
                 Descripción
               </label>
 
-              <textarea class="form-control" maxlength="250" v-model.trim="insumo.descripcion">
-</textarea>
+              <textarea class="form-control" maxlength="250" v-model.trim="insumo.descripcion" />
 
             </div>
             <div class="col-md-4">
@@ -214,7 +213,7 @@
 
               </label>
 
-              <input type="number" class="form-control" v-model="insumo.stockActual">
+              <input type="number" class="form-control" v-model.number="insumo.stockActual" min="0" step="1">
 
             </div>
 
@@ -226,7 +225,7 @@
 
               </label>
 
-              <input type="number" class="form-control" v-model="insumo.stockMinimo">
+              <input type="number" class="form-control" v-model.number="insumo.stockMinimo" min="0" step="1">
 
             </div>
 
@@ -238,7 +237,7 @@
 
               </label>
 
-              <input type="number" step="0.01" class="form-control" v-model="insumo.costoUnitario">
+              <input type="number" class="form-control" v-model.number="insumo.costoUnitario" min="0.01" step="0.01">
 
             </div>
             <div class="col-md-6">
@@ -249,7 +248,7 @@
 
               </label>
 
-              <input type="date" class="form-control" v-model="insumo.fechaVencimiento">
+              <input type="date" class="form-control" v-model="insumo.fechaVencimiento" :min="fechaHoy">
 
             </div>
           </div>
@@ -265,7 +264,7 @@
 
           </button>
 
-          <button type="button" class="btn btn-success" @click="guardarInsumo">
+          <button type="button" class="btn btn-primary-custom" @click="guardarInsumo">
 
             {{ insumo.idInsumo ? 'Actualizar' : 'Guardar' }}
 
@@ -337,6 +336,7 @@ import {
 } from '@/services/insumoService'
 import NavbarComponent from '@/components/NavbarComponent.vue';
 import SidebarComponent from '@/components/SidebarComponent.vue';
+import '@/assets/css/insumo.css'
 
 import { Modal } from 'bootstrap'
 
@@ -344,6 +344,7 @@ const insumos = ref([])
 const busqueda = ref('')
 const insumoSeleccionado = ref(null)
 const insumoEliminar = ref(null)
+const DIAS_PROXIMO_VENCER = 3
 const insumo = ref({
   idInsumo: null,
   nombreInsumo: '',
@@ -354,6 +355,7 @@ const insumo = ref({
   costoUnitario: null,
   fechaVencimiento: null
 })
+const fechaHoy = new Date().toISOString().split('T')[0]
 
 async function cargarInsumos() {
 
@@ -557,6 +559,77 @@ function prepararEliminar(insumo) {
 
 
   insumoEliminar.value = insumo
+}
+
+function filtrarNombre() {
+  insumo.value.nombreInsumo =
+    insumo.value.nombreInsumo.replace(
+      /[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s().,/ -]/g,
+      ''
+    )
+}
+
+function obtenerEstado(insumo) {
+
+  const hoy = new Date()
+
+  const fechaVencimiento = new Date(insumo.fechaVencimiento)
+
+  hoy.setHours(0, 0, 0, 0)
+fechaVencimiento.setHours(0, 0, 0, 0)
+
+const diferenciaDias =
+  (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
+
+  if (fechaVencimiento < hoy) {
+    return "Vencido"
+  }
+
+  if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
+    return "Próximo a vencer"
+}
+
+  if (insumo.stockActual === 0) {
+    return "Sin Stock"
+  }
+
+  if (insumo.stockActual <= insumo.stockMinimo) {
+    return "Stock Bajo"
+  }
+
+  return "Ok"
+
+}
+
+function obtenerClaseEstado(insumo) {
+
+    const hoy = new Date()
+
+    const fechaVencimiento = new Date(insumo.fechaVencimiento)
+
+    hoy.setHours(0,0,0,0)
+    fechaVencimiento.setHours(0,0,0,0)
+
+    const diferenciaDias =
+        (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
+
+    if (fechaVencimiento < hoy) {
+        return "bg-danger"
+    }
+
+    if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
+        return "bg-warning text-dark"
+    }
+
+    if (insumo.stockActual === 0) {
+        return "bg-danger"
+    }
+
+    if (insumo.stockActual <= insumo.stockMinimo) {
+        return "bg-warning text-dark"
+    }
+
+    return "bg-success"
 }
 
 </script>
