@@ -294,6 +294,8 @@ async function iniciarSesion() {
       router.push('/caja')
     } else if (rolUsuario === 'COCINERO') {
       router.push('/cocina')
+    } else if (rolUsuario === 'ALMACENERO') {
+      router.push('/alertas-inventario')
     } else {
       // Ruta por defecto por si en el futuro agregas más roles (ej. CAJERO)
       router.push('/login')

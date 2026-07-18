@@ -41,7 +41,7 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
                     <RouterLink to="/inventario" class="nav-link custom-link d-flex align-items-center fw-medium"
                         active-class="active">
 
@@ -49,6 +49,13 @@
 
                         <span>Inventario</span>
 
+                    </RouterLink>
+                </li>
+
+                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
+                    <RouterLink to="/alertas-inventario" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-bell me-3 fs-5"></i>
+                        <span>Alertas de Inventario</span>
                     </RouterLink>
                 </li>
 
@@ -128,6 +135,7 @@ const rolActual = computed(() => String(usuarioActual.value?.rol || '').toUpperC
 const rutaInicio = computed(() => {
     if (rolActual.value === 'ADMIN') return '/dashboard'
     if (rolActual.value === 'COCINERO') return '/cocina'
+    if (rolActual.value === 'ALMACENERO') return '/alertas-inventario'
     return rolActual.value === 'CAJERO' ? '/caja' : '/mesas'
 })
 
