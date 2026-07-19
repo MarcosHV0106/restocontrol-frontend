@@ -16,7 +16,7 @@
                             <span v-if="cargandoMesas" class="spinner-border spinner-border-sm"></span>
                             <i v-else class="bi bi-arrow-clockwise"></i>
                         </button>
-                        <button class="btn btn-primary-resto mesa-new-button" @click="nuevo">
+                        <button v-if="esAdministrador" class="btn btn-primary-resto mesa-new-button" @click="nuevo">
                             <i class="bi bi-plus-lg"></i>Nueva mesa
                         </button>
                     </div>
@@ -25,6 +25,9 @@
                 <div v-if="errorMesas" class="mesa-alert" role="alert">
                     <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorMesas }}</span>
                     <button type="button" @click="listar">Reintentar</button>
+                </div>
+                <div v-if="mensajeMesas" class="mesa-alert mesa-alert-success" role="status">
+                    <i class="bi bi-check-circle-fill"></i><span>{{ mensajeMesas }}</span>
                 </div>
 
                 <div class="row g-3 mesa-kpis">
@@ -130,7 +133,7 @@
                                 </div>
 
                                 <div class="d-grid gap-2 mb-4">
-                                    <button class="btn btn-outline-secondary py-2"
+                                    <button v-if="esAdministrador" class="btn btn-outline-secondary py-2"
                                         @click="editarMesa(mesaSeleccionada.idMesa)">
                                         <i class="bi bi-pencil me-2"></i>Editar Datos de Mesa
                                     </button>
@@ -143,11 +146,17 @@
                                     <button
                                         v-if="mesaSeleccionada.pedido && (mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar')"
                                         class="btn btn-primary-resto py-2 text-white" @click="abrirPedidoSeleccionado">
-                                        <i class="bi bi-receipt me-2"></i>Ver / Editar Pedido
+                                        <i class="bi bi-receipt me-2"></i>{{ mesaSeleccionada.pedido.editable ? 'Continuar pedido' : 'Ver pedido' }}
                                     </button>
 
                                     <button
-                                        v-if="mesaSeleccionada.pedido && (mesaSeleccionada.estadoMesa.descripcion === 'ocupada' || mesaSeleccionada.estadoMesa.descripcion === 'cobrar')"
+                                        v-if="mesaSeleccionada.pedido?.puedeSolicitarCuenta"
+                                        class="btn btn-outline-primary py-2" @click="solicitarCuentaSeleccionada">
+                                        <i class="bi bi-receipt-cutoff me-2"></i>Solicitar cuenta
+                                    </button>
+
+                                    <button
+                                        v-if="puedeCobrar && mesaSeleccionada.pedido && mesaSeleccionada.estadoMesa.descripcion === 'cobrar'"
                                         class="btn btn-outline-primary py-2" @click="irACaja">
                                         <i class="bi bi-wallet2 me-2"></i>Ir a Caja
                                     </button>
@@ -269,8 +278,11 @@ import SidebarComponent from '@/components/SidebarComponent.vue';
 
 // Servicios
 import { obtenerMesas, crearMesa, actualizarMesa, obtenerMesaPorId } from '@/services/mesaService';
+import pedidoService from '@/services/pedidoService';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 // --- ESTADO ---
 const entidades = ref([]);
@@ -280,6 +292,7 @@ const filtros = ref({ busqueda: '', piso: '', estado: '' });
 const cantidadPersonas = ref(1);
 const cargandoMesas = ref(true);
 const errorMesas = ref('');
+const mensajeMesas = ref('');
 
 // Estado para creación/edición de una mesa
 const entidad = ref({
@@ -306,6 +319,8 @@ const mesasFiltradas = computed(() => {
 
 const pisos = computed(() => [...new Set(entidades.value.filter(m => !m.eliminado).map(m => m.piso))].sort());
 const hayFiltros = computed(() => Boolean(filtros.value.busqueda || filtros.value.piso || filtros.value.estado));
+const esAdministrador = computed(() => String(authStore.usuario?.rol || '').toUpperCase() === 'ADMIN');
+const puedeCobrar = computed(() => ['ADMIN', 'CAJERO'].includes(String(authStore.usuario?.rol || '').toUpperCase()));
 
 const resumenCalculado = computed(() => {
     const activas = entidades.value.filter(m => !m.eliminado);
@@ -336,6 +351,19 @@ const listar = async () => {
         errorMesas.value = e.response?.data?.mensaje || 'No se pudo consultar el estado del salón.';
     } finally {
         cargandoMesas.value = false;
+    }
+};
+
+const solicitarCuentaSeleccionada = async () => {
+    if (!mesaSeleccionada.value?.pedido?.idPedido) return;
+    errorMesas.value = '';
+    mensajeMesas.value = '';
+    try {
+        await pedidoService.solicitarCuenta(mesaSeleccionada.value.pedido.idPedido);
+        mensajeMesas.value = `La cuenta del pedido #${mesaSeleccionada.value.pedido.idPedido} fue enviada a Caja.`;
+        await listar();
+    } catch (error) {
+        errorMesas.value = error.response?.data?.mensaje || 'No se pudo solicitar la cuenta.';
     }
 };
 

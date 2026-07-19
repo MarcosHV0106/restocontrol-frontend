@@ -80,7 +80,7 @@
               <tbody>
                 <tr v-for="cuenta in pendientesFiltrados" :key="cuenta.idPedido">
                   <td data-label="Pedido"><strong>#{{ cuenta.idPedido }}</strong></td>
-                  <td data-label="Mesa"><span class="table-pill"><i class="bi bi-layout-text-window-reverse"></i> Mesa {{ cuenta.mesa?.numeroMesa ?? '-' }}</span></td>
+                  <td data-label="Atención"><span class="table-pill"><i class="bi bi-layout-text-window-reverse"></i> {{ ubicacionPedido(cuenta) }}</span></td>
                   <td data-label="Responsable">{{ nombreUsuario(cuenta.usuario) }}</td>
                   <td data-label="Inicio" class="text-nowrap">{{ fechaCorta(cuenta.fechaPedido) }}</td>
                   <td data-label="Tiempo" class="text-nowrap text-muted">{{ tiempoTranscurrido(cuenta.fechaPedido) }}</td>
@@ -113,7 +113,7 @@
           <section class="order-meta" aria-label="Información del pedido">
             <article>
               <span class="meta-icon"><i class="bi bi-layout-text-window-reverse"></i></span>
-              <div><small>Mesa</small><strong>Mesa {{ pedido.mesa?.numeroMesa ?? '-' }}</strong></div>
+              <div><small>Atención</small><strong>{{ ubicacionPedido(pedido) }}</strong></div>
             </article>
             <article>
               <span class="meta-icon"><i class="bi bi-receipt"></i></span>
@@ -308,7 +308,7 @@
           <h2 id="confirm-title">Confirma los datos del cobro</h2>
           <p>Esta acción registrará el pago y cerrará el pedido <strong>#{{ pedido?.idPedido }}</strong>.</p>
           <dl>
-            <div><dt>Mesa</dt><dd>{{ pedido?.mesa?.numeroMesa }}</dd></div>
+            <div><dt>Atención</dt><dd>{{ ubicacionPedido(pedido) }}</dd></div>
             <div><dt>Total</dt><dd>S/ {{ moneda(totalCobrar) }}</dd></div>
             <div><dt>Pagos</dt><dd>{{ pagosParaEnviar.length }}</dd></div>
             <div><dt>Comprobante</dt><dd>{{ pagosParaEnviar.length > 1 ? 'Por cada pago' : etiquetaComprobante }}</dd></div>
@@ -329,12 +329,12 @@
           <div class="success-check"><i class="bi bi-check-lg"></i></div>
           <p class="section-kicker">Operación completada</p>
           <h2 id="success-title">Cobro registrado correctamente</h2>
-          <p>El pedido fue cerrado y la mesa ya está disponible.</p>
+          <p>El pedido fue cerrado correctamente{{ cobroExitoso.numeroMesa ? ' y la mesa ya está disponible' : '' }}.</p>
 
           <div id="comprobante-cobro" class="receipt-preview">
             <div class="receipt-brand"><strong>RestoControl</strong><span>Resumen interno de cobro</span></div>
             <div class="receipt-line"><span>Pedido</span><strong>#{{ cobroExitoso.idPedido }}</strong></div>
-            <div class="receipt-line"><span>Mesa</span><strong>{{ cobroExitoso.numeroMesa }}</strong></div>
+            <div class="receipt-line"><span>Atención</span><strong>{{ cobroExitoso.ubicacion }}</strong></div>
             <div class="receipt-line"><span>Fecha</span><strong>{{ fechaCompleta(cobroExitoso.fechaCobro) }}</strong></div>
             <div class="receipt-line"><span>Cajero</span><strong>{{ cobroExitoso.nombreCajero }}</strong></div>
             <div class="receipt-divider"></div>
@@ -414,7 +414,7 @@ const pendientesFiltrados = computed(() => {
   const termino = busqueda.value.toLocaleLowerCase('es-PE')
   if (!termino) return pendientes.value
   return pendientes.value.filter((item) =>
-    [item.idPedido, item.mesa?.numeroMesa, nombreUsuario(item.usuario)]
+    [item.idPedido, item.mesa?.numeroMesa, item.clienteNombre, item.modalidadPedido?.nombreModalidad, nombreUsuario(item.usuario)]
       .join(' ')
       .toLocaleLowerCase('es-PE')
       .includes(termino),
@@ -580,7 +580,7 @@ async function procesarCobro() {
       descuento: descuentoNumero.value.toFixed(2),
       pagos: pagosParaEnviar.value,
     })
-    cobroExitoso.value = resultado
+    cobroExitoso.value = { ...resultado, ubicacion: ubicacionPedido(pedido.value) }
     confirmacionAbierta.value = false
     pendientes.value = pendientes.value.filter((item) => item.idPedido !== pedido.value.idPedido)
     pedido.value = null
@@ -610,6 +610,13 @@ function mensajeError(error, mensajeAlternativo) {
 function nombreUsuario(usuario) {
   const nombre = [usuario?.nombre, usuario?.apellido].filter(Boolean).join(' ').trim()
   return nombre || usuario?.correo || 'No disponible'
+}
+
+function ubicacionPedido(item) {
+  if (!item) return '-'
+  if (item.mesa?.numeroMesa !== null && item.mesa?.numeroMesa !== undefined) return `Mesa ${item.mesa.numeroMesa}`
+  const modalidad = item.modalidadPedido?.nombreModalidad || 'Sin mesa'
+  return item.clienteNombre ? `${modalidad} · ${item.clienteNombre}` : modalidad
 }
 
 function fechaValida(fecha) {

@@ -97,7 +97,7 @@
                       <span class="order-sequence">{{ pedido.detalles?.length || 0 }}</span>
                       <div>
                         <strong>#{{ String(pedido.idPedido).padStart(5, '0') }}</strong>
-                        <small>{{ esParaLlevar(pedido) ? 'Para llevar' : `Mesa ${pedido.numeroMesa}` }}</small>
+                        <small>{{ ubicacionPedido(pedido) }}</small>
                       </div>
                     </div>
                     <span class="time-badge" :class="{ late: esAtrasado(pedido) }">
@@ -319,6 +319,7 @@ const pedidosFiltrados = computed(() => {
       pedido.numeroMesa,
       pedido.responsable,
       pedido.modalidad,
+      pedido.clienteNombre,
       pedido.observacion,
       ...(pedido.detalles || []).map((detalle) => detalle.nombreAlimento),
     ]
@@ -535,8 +536,11 @@ function hora(fecha) {
   return new Intl.DateTimeFormat('es-PE', { hour: '2-digit', minute: '2-digit' }).format(valor)
 }
 
-function esParaLlevar(pedido) {
-  return String(pedido.modalidad || '').toUpperCase().includes('LLEVAR')
+function ubicacionPedido(pedido) {
+  if (pedido.numeroMesa !== null && pedido.numeroMesa !== undefined) return `Mesa ${pedido.numeroMesa}`
+  const modalidad = String(pedido.modalidad || '').toUpperCase()
+  const etiqueta = modalidad.includes('DELIVERY') ? 'Delivery' : 'Para llevar'
+  return pedido.clienteNombre ? `${etiqueta} · ${pedido.clienteNombre}` : etiqueta
 }
 
 function mensajeVacio(estado) {

@@ -49,5 +49,50 @@ export default {
       console.error('Error fetching pedido por mesa:', error);
       throw error;
     }
+  },
+
+  async getModalidades() {
+    const response = await api.get('/modalidadespedidos');
+    return response.data;
+  },
+
+  async getResponsables() {
+    const response = await api.get('/pedidos/responsables');
+    return response.data;
+  },
+
+  async enviarACocina(idPedido) {
+    const response = await api.post(`/pedidos/${idPedido}/enviar-cocina`);
+    return response.data;
+  },
+
+  async reabrir(idPedido) {
+    const response = await api.post(`/pedidos/${idPedido}/reabrir`);
+    return response.data;
+  },
+
+  async solicitarCuenta(idPedido) {
+    const response = await api.post(`/pedidos/${idPedido}/solicitar-cuenta`);
+    return response.data;
+  },
+
+  async anular(idPedido, motivo) {
+    const response = await api.post(`/pedidos/${idPedido}/anular`, { motivo });
+    return response.data;
+  },
+
+  async cambiarMesa(idPedido, idMesaDestino) {
+    const response = await api.put(`/pedidos/${idPedido}/mesa`, { idMesaDestino });
+    return response.data;
+  },
+
+  async transferirResponsable(idPedido, idUsuarioDestino) {
+    const response = await api.put(`/pedidos/${idPedido}/responsable`, { idUsuarioDestino });
+    return response.data;
+  },
+
+  async actualizarObservacion(idPedido, observacion) {
+    const response = await api.put(`/pedidos/${idPedido}/observacion`, { observacion });
+    return response.data;
   }
 };

@@ -291,7 +291,7 @@ async function iniciarSesion() {
     } else if (rolUsuario === 'MESERO') {
       router.push('/mesas')
     } else if (rolUsuario === 'CAJERO') {
-      router.push('/caja')
+      router.push('/pedidos')
     } else if (rolUsuario === 'COCINERO') {
       router.push('/cocina')
     } else if (rolUsuario === 'ALMACENERO') {
