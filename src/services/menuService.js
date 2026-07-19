@@ -69,3 +69,18 @@ export async function eliminarCategoria(id) {
     const response = await api.delete(`/categorias/${id}`)
     return response.data
 }
+
+export async function obtenerEstimacionDiaria(fecha) {
+    const response = await api.get(`/estimaciones-diarias/${fecha}`)
+    return response.data
+}
+
+export async function validarEstimacionDiaria(fecha, estimacion) {
+    const response = await api.post(`/estimaciones-diarias/${fecha}/validar`, estimacion)
+    return response.data
+}
+
+export async function guardarEstimacionDiaria(fecha, estimacion) {
+    const response = await api.put(`/estimaciones-diarias/${fecha}`, estimacion)
+    return response.data
+}
