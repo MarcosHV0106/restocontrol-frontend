@@ -24,7 +24,7 @@ const routes = [
 
     // Rutas exclusivas para ADMIN
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
-    { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },

@@ -12,12 +12,9 @@
             <p class="text-muted mb-0">Gestión de insumos y lotes del restaurante</p>
           </div>
 
-          <button class="btn btn-primary-custom" @click="nuevoInsumo">
-
+          <button type="button" class="btn btn-primary-custom" @click="nuevoInsumo">
             <i class="bi bi-plus-circle me-2"></i>
-
-            Nuevo Insumo
-
+            Nuevo insumo
           </button>
         </div>
 
@@ -56,12 +53,13 @@
                     <td>{{ formatearCantidad(item.stockMinimo) }}</td>
                     <td>S/ {{ Number(item.costoUnitario || 0).toFixed(2) }}</td>
                     <td>
-                      <span class="badge" :class="obtenerClaseEstado(insumo)">
-                        {{ obtenerEstado(insumo) }}
+                      <span class="badge" :class="obtenerClaseEstado(item)">
+                        {{ obtenerEstado(item) }}
                       </span>
                     </td>
                     <td class="text-center text-nowrap">
                       <button
+                        type="button"
                         class="btn btn-sm btn-outline-success me-2"
                         title="Gestionar lotes"
                         @click="abrirLotes(item)"
@@ -70,6 +68,7 @@
                       </button>
 
                       <button
+                        type="button"
                         class="btn btn-sm btn-outline-primary me-2"
                         title="Editar insumo"
                         @click="editarInsumo(item)"
@@ -78,6 +77,7 @@
                       </button>
 
                       <button
+                        type="button"
                         class="btn btn-sm btn-outline-danger"
                         title="Eliminar insumo"
                         @click="prepararEliminar(item)"
@@ -105,20 +105,22 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ insumo.idInsumo ? 'Editar insumo' : 'Nuevo insumo' }}</h5>
+          <h5 class="modal-title">
+            {{ insumo.idInsumo ? 'Editar insumo' : 'Nuevo insumo' }}
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-6">
-
-              <label class="form-label">
-                Nombre
-              </label>
-
-              <input class="form-control" maxlength="100" v-model.trim="insumo.nombreInsumo" @input="filtrarNombre" />
-
+              <label class="form-label">Nombre</label>
+              <input
+                v-model.trim="insumo.nombreInsumo"
+                class="form-control"
+                maxlength="100"
+                @input="filtrarNombre"
+              >
             </div>
 
             <div class="col-md-6">
@@ -134,70 +136,59 @@
             </div>
 
             <div class="col-12">
-
-              <label class="form-label">
-                Descripción
-              </label>
-
-              <textarea class="form-control" maxlength="250" v-model.trim="insumo.descripcion" />
-
+              <label class="form-label">Descripción</label>
+              <textarea
+                v-model.trim="insumo.descripcion"
+                class="form-control"
+                maxlength="250"
+                rows="3"
+              ></textarea>
             </div>
-            <div class="col-md-4">
-
-              <label class="form-label">
-
-                Stock Actual
-
-              </label>
-
-              <input type="number" class="form-control" v-model.number="insumo.stockActual" min="0" step="1">
 
             <div v-if="insumo.idInsumo" class="col-md-4">
               <label class="form-label">Stock actual</label>
-              <input :value="formatearCantidad(insumo.stockActual)" class="form-control" disabled>
+              <input
+                :value="formatearCantidad(insumo.stockActual)"
+                class="form-control"
+                disabled
+              >
               <div class="form-text">Se calcula automáticamente desde los lotes.</div>
             </div>
 
             <div class="col-md-4">
-
-              <label class="form-label">
-
-                Stock Mínimo
-
-              </label>
-
-              <input type="number" class="form-control" v-model.number="insumo.stockMinimo" min="0" step="1">
-
+              <label class="form-label">Stock mínimo</label>
+              <input
+                v-model.number="insumo.stockMinimo"
+                type="number"
+                class="form-control"
+                min="0"
+                step="0.0001"
+              >
             </div>
 
             <div class="col-md-4">
-
-              <label class="form-label">
-
-                Costo Unitario
-
-              </label>
-
-              <input type="number" class="form-control" v-model.number="insumo.costoUnitario" min="0.01" step="0.01">
-
-            </div>
-            <div class="col-md-6">
-
-              <label class="form-label">
-
-                Fecha de vencimiento
-
-              </label>
-
-              <input type="date" class="form-control" v-model="insumo.fechaVencimiento" :min="fechaHoy">
-
+              <label class="form-label">Costo unitario</label>
+              <input
+                v-model.number="insumo.costoUnitario"
+                type="number"
+                class="form-control"
+                min="0.01"
+                step="0.01"
+              >
             </div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-success" :disabled="guardando" @click="guardarInsumo">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            :disabled="guardando"
+            @click="guardarInsumo"
+          >
             {{ guardando ? 'Guardando...' : (insumo.idInsumo ? 'Actualizar' : 'Guardar') }}
           </button>
         </div>
@@ -205,7 +196,18 @@
     </div>
   </div>
 
-          <button type="button" class="btn btn-primary-custom" @click="guardarInsumo">
+  <div id="lotesModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title">Lotes del insumo</h5>
+            <small class="text-muted">
+              {{ insumoSeleccionado?.nombreInsumo || '' }}
+            </small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
 
         <div class="modal-body">
           <div class="card border-success-subtle mb-4">
@@ -214,18 +216,42 @@
               <div class="row g-3 align-items-end">
                 <div class="col-md-3">
                   <label class="form-label">Cantidad</label>
-                  <input v-model.number="nuevoLote.cantidad" type="number" min="0.0001" step="0.0001" class="form-control">
+                  <input
+                    v-model.number="nuevoLote.cantidad"
+                    type="number"
+                    min="0.0001"
+                    step="0.0001"
+                    class="form-control"
+                  >
                 </div>
+
                 <div class="col-md-3">
                   <label class="form-label">Fecha de vencimiento</label>
-                  <input v-model="nuevoLote.fechaVencimiento" type="date" class="form-control">
+                  <input
+                    v-model="nuevoLote.fechaVencimiento"
+                    type="date"
+                    class="form-control"
+                    :min="fechaHoy"
+                  >
                 </div>
+
                 <div class="col-md-4">
                   <label class="form-label">Referencia (opcional)</label>
-                  <input v-model.trim="nuevoLote.referencia" class="form-control" maxlength="100" placeholder="Factura, compra u observación">
+                  <input
+                    v-model.trim="nuevoLote.referencia"
+                    class="form-control"
+                    maxlength="100"
+                    placeholder="Factura, compra u observación"
+                  >
                 </div>
+
                 <div class="col-md-2 d-grid">
-                  <button class="btn btn-success" :disabled="guardandoLote" @click="registrarLote">
+                  <button
+                    type="button"
+                    class="btn btn-success"
+                    :disabled="guardandoLote"
+                    @click="registrarLote"
+                  >
                     {{ guardandoLote ? 'Registrando...' : 'Registrar lote' }}
                   </button>
                 </div>
@@ -250,6 +276,7 @@
                   <th class="text-center">Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr v-for="lote in lotes" :key="lote.idLote">
                   <td>{{ lote.codigo }}</td>
@@ -258,12 +285,16 @@
                   <td>{{ formatearCantidad(lote.cantidadInicial) }}</td>
                   <td>{{ formatearCantidad(lote.cantidadActual) }}</td>
                   <td>
-                    <span class="badge" :class="lote.estado === 'ACTIVO' ? 'text-bg-success' : 'text-bg-secondary'">
+                    <span
+                      class="badge"
+                      :class="lote.estado === 'ACTIVO' ? 'text-bg-success' : 'text-bg-secondary'"
+                    >
                       {{ lote.estado }}
                     </span>
                   </td>
                   <td class="text-center text-nowrap">
                     <button
+                      type="button"
                       class="btn btn-sm btn-outline-primary me-2"
                       :disabled="lote.estado !== 'ACTIVO'"
                       title="Editar lote"
@@ -271,7 +302,9 @@
                     >
                       <i class="bi bi-pencil"></i>
                     </button>
+
                     <button
+                      type="button"
                       class="btn btn-sm btn-outline-danger"
                       :disabled="lote.estado !== 'ACTIVO' || Number(lote.cantidadActual) <= 0"
                       title="Retirar como merma"
@@ -281,8 +314,11 @@
                     </button>
                   </td>
                 </tr>
+
                 <tr v-if="lotes.length === 0">
-                  <td colspan="7" class="text-center text-muted py-4">Este insumo todavía no tiene lotes.</td>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    Este insumo todavía no tiene lotes.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -290,7 +326,9 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cerrar
+          </button>
         </div>
       </div>
     </div>
@@ -303,19 +341,38 @@
           <h5 class="modal-title">Editar lote</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
+
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Código</label>
-            <input v-model.trim="edicionLote.codigo" class="form-control" maxlength="60">
+            <input
+              v-model.trim="edicionLote.codigo"
+              class="form-control"
+              maxlength="60"
+            >
           </div>
+
           <div>
             <label class="form-label">Fecha de vencimiento</label>
-            <input v-model="edicionLote.fechaVencimiento" type="date" class="form-control">
+            <input
+              v-model="edicionLote.fechaVencimiento"
+              type="date"
+              class="form-control"
+              :min="fechaHoy"
+            >
           </div>
         </div>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" :disabled="guardandoLote" @click="guardarEdicionLote">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="guardandoLote"
+            @click="guardarEdicionLote"
+          >
             Guardar cambios
           </button>
         </div>
@@ -330,12 +387,24 @@
           <h5 class="modal-title">Confirmar eliminación</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
+
         <div class="modal-body">
-          ¿Está seguro de eliminar el insumo <strong>{{ insumoEliminar?.nombreInsumo }}</strong>?
+          ¿Está seguro de eliminar el insumo
+          <strong>{{ insumoEliminar?.nombreInsumo }}</strong>?
         </div>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" @click="confirmarEliminacion">Eliminar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            :disabled="eliminando"
+            @click="confirmarEliminacion"
+          >
+            {{ eliminando ? 'Eliminando...' : 'Eliminar' }}
+          </button>
         </div>
       </div>
     </div>
@@ -353,28 +422,24 @@ import {
   eliminarInsumo,
   obtenerInsumos
 } from '@/services/insumoService'
-import NavbarComponent from '@/components/NavbarComponent.vue';
-import SidebarComponent from '@/components/SidebarComponent.vue';
+import {
+  actualizarLote,
+  crearLote,
+  obtenerLotes,
+  retirarLote
+} from '@/services/loteInsumoService'
 import '@/assets/css/insumo.css'
-
-import { Modal } from 'bootstrap'
 
 const insumos = ref([])
 const lotes = ref([])
 const busqueda = ref('')
 const insumoSeleccionado = ref(null)
 const insumoEliminar = ref(null)
+const guardando = ref(false)
+const guardandoLote = ref(false)
+const cargandoLotes = ref(false)
+const eliminando = ref(false)
 const DIAS_PROXIMO_VENCER = 3
-const insumo = ref({
-  idInsumo: null,
-  nombreInsumo: '',
-  descripcion: '',
-  unidadMedida: '',
-  stockActual: 0,
-  stockMinimo: 0,
-  costoUnitario: null,
-  fechaVencimiento: null
-})
 const fechaHoy = new Date().toISOString().split('T')[0]
 
 const insumo = ref(insumoVacio())
@@ -384,7 +449,10 @@ const edicionLote = ref({ idLote: null, codigo: '', fechaVencimiento: '' })
 const insumosFiltrados = computed(() => {
   const texto = busqueda.value.trim().toLowerCase()
   if (!texto) return insumos.value
-  return insumos.value.filter(item => item.nombreInsumo.toLowerCase().includes(texto))
+
+  return insumos.value.filter(item =>
+    String(item.nombreInsumo || '').toLowerCase().includes(texto)
+  )
 })
 
 onMounted(cargarInsumos)
@@ -402,15 +470,23 @@ function insumoVacio() {
 }
 
 function loteVacio() {
-  return { cantidad: null, fechaVencimiento: '', referencia: '' }
+  return {
+    cantidad: null,
+    fechaVencimiento: '',
+    referencia: ''
+  }
 }
 
 function mensajeError(error) {
-  return error?.response?.data?.mensaje || error?.response?.data?.message || 'No se pudo completar la operación.'
+  return error?.response?.data?.mensaje
+    || error?.response?.data?.message
+    || 'No se pudo completar la operación.'
 }
 
 function formatearCantidad(valor) {
-  return Number(valor || 0).toLocaleString('es-PE', { maximumFractionDigits: 4 })
+  return Number(valor || 0).toLocaleString('es-PE', {
+    maximumFractionDigits: 4
+  })
 }
 
 async function cargarInsumos() {
@@ -432,25 +508,51 @@ function editarInsumo(item) {
 }
 
 function validarInsumo() {
-  if (!insumo.value.nombreInsumo.trim()) return 'Ingrese el nombre del insumo.'
-  if (!insumo.value.descripcion?.trim()) return 'Ingrese la descripción.'
-  if (!insumo.value.unidadMedida) return 'Seleccione la unidad de medida.'
-  if (insumo.value.stockMinimo == null || Number(insumo.value.stockMinimo) < 0) return 'Ingrese un stock mínimo válido.'
-  if (insumo.value.costoUnitario == null || Number(insumo.value.costoUnitario) <= 0) return 'Ingrese un costo válido.'
+  if (!insumo.value.nombreInsumo.trim()) {
+    return 'Ingrese el nombre del insumo.'
+  }
+
+  if (!insumo.value.descripcion?.trim()) {
+    return 'Ingrese la descripción.'
+  }
+
+  if (!insumo.value.unidadMedida) {
+    return 'Seleccione la unidad de medida.'
+  }
+
+  if (
+    insumo.value.stockMinimo == null
+    || Number(insumo.value.stockMinimo) < 0
+  ) {
+    return 'Ingrese un stock mínimo válido.'
+  }
+
+  if (
+    insumo.value.costoUnitario == null
+    || Number(insumo.value.costoUnitario) <= 0
+  ) {
+    return 'Ingrese un costo válido.'
+  }
+
   return null
 }
 
 async function guardarInsumo() {
   const errorValidacion = validarInsumo()
-  if (errorValidacion) return alert(errorValidacion)
+  if (errorValidacion) {
+    alert(errorValidacion)
+    return
+  }
 
   guardando.value = true
+
   try {
     if (insumo.value.idInsumo) {
       await actualizarInsumo(insumo.value.idInsumo, insumo.value)
     } else {
       await crearInsumo(insumo.value)
     }
+
     await cargarInsumos()
     Modal.getOrCreateInstance(document.getElementById('insumoModal')).hide()
   } catch (error) {
@@ -469,7 +571,9 @@ async function abrirLotes(item) {
 
 async function cargarLotes() {
   if (!insumoSeleccionado.value) return
+
   cargandoLotes.value = true
+
   try {
     lotes.value = await obtenerLotes(insumoSeleccionado.value.idInsumo)
   } catch (error) {
@@ -481,15 +585,27 @@ async function cargarLotes() {
 
 async function refrescarInventarioYLotes() {
   const idSeleccionado = insumoSeleccionado.value?.idInsumo
+
   await Promise.all([cargarInsumos(), cargarLotes()])
-  insumoSeleccionado.value = insumos.value.find(item => item.idInsumo === idSeleccionado) || null
+
+  insumoSeleccionado.value = insumos.value.find(
+    item => item.idInsumo === idSeleccionado
+  ) || null
 }
 
 async function registrarLote() {
-  if (!nuevoLote.value.cantidad || Number(nuevoLote.value.cantidad) <= 0) return alert('Ingrese una cantidad mayor a cero.')
-  if (!nuevoLote.value.fechaVencimiento) return alert('Seleccione la fecha de vencimiento.')
+  if (!nuevoLote.value.cantidad || Number(nuevoLote.value.cantidad) <= 0) {
+    alert('Ingrese una cantidad mayor a cero.')
+    return
+  }
+
+  if (!nuevoLote.value.fechaVencimiento) {
+    alert('Seleccione la fecha de vencimiento.')
+    return
+  }
 
   guardandoLote.value = true
+
   try {
     await crearLote(insumoSeleccionado.value.idInsumo, nuevoLote.value)
     nuevoLote.value = loteVacio()
@@ -507,14 +623,23 @@ function prepararEdicionLote(lote) {
     codigo: lote.codigo,
     fechaVencimiento: lote.fechaVencimiento || ''
   }
+
   Modal.getOrCreateInstance(document.getElementById('editarLoteModal')).show()
 }
 
 async function guardarEdicionLote() {
-  if (!edicionLote.value.codigo.trim()) return alert('Ingrese el código del lote.')
-  if (!edicionLote.value.fechaVencimiento) return alert('Seleccione la fecha de vencimiento.')
+  if (!edicionLote.value.codigo.trim()) {
+    alert('Ingrese el código del lote.')
+    return
+  }
+
+  if (!edicionLote.value.fechaVencimiento) {
+    alert('Seleccione la fecha de vencimiento.')
+    return
+  }
 
   guardandoLote.value = true
+
   try {
     await actualizarLote(edicionLote.value.idLote, edicionLote.value)
     Modal.getOrCreateInstance(document.getElementById('editarLoteModal')).hide()
@@ -527,15 +652,21 @@ async function guardarEdicionLote() {
 }
 
 async function retirarExistencia(lote) {
-  const confirmado = confirm(`Se retirarán ${formatearCantidad(lote.cantidadActual)} unidades del lote ${lote.codigo} como merma. ¿Continuar?`)
+  const confirmado = confirm(
+    `Se retirarán ${formatearCantidad(lote.cantidadActual)} unidades `
+    + `del lote ${lote.codigo} como merma. ¿Continuar?`
+  )
+
   if (!confirmado) return
 
   guardandoLote.value = true
+
   try {
     await retirarLote(lote.idLote, {
       motivo: 'Retiro manual del lote como merma',
       referencia: 'Inventario'
     })
+
     await refrescarInventarioYLotes()
   } catch (error) {
     alert(mensajeError(error))
@@ -546,78 +677,80 @@ async function retirarExistencia(lote) {
 
 function prepararEliminar(item) {
   insumoEliminar.value = item
-  Modal.getOrCreateInstance(document.getElementById('confirmarEliminarModal')).show()
+  Modal.getOrCreateInstance(
+    document.getElementById('confirmarEliminarModal')
+  ).show()
+}
+
+async function confirmarEliminacion() {
+  if (!insumoEliminar.value) return
+
+  eliminando.value = true
+
+  try {
+    await eliminarInsumo(insumoEliminar.value.idInsumo)
+    await cargarInsumos()
+
+    Modal.getOrCreateInstance(
+      document.getElementById('confirmarEliminarModal')
+    ).hide()
+
+    insumoEliminar.value = null
+  } catch (error) {
+    alert(mensajeError(error))
+  } finally {
+    eliminando.value = false
+  }
 }
 
 function filtrarNombre() {
-  insumo.value.nombreInsumo =
-    insumo.value.nombreInsumo.replace(
-      /[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s().,/ -]/g,
-      ''
-    )
+  insumo.value.nombreInsumo = insumo.value.nombreInsumo.replace(
+    /[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s().,/ -]/g,
+    ''
+  )
 }
 
-function obtenerEstado(insumo) {
+function obtenerFechaVencimiento(item) {
+  if (!item?.fechaVencimiento) return null
 
-  const hoy = new Date()
-
-  const fechaVencimiento = new Date(insumo.fechaVencimiento)
-
-  hoy.setHours(0, 0, 0, 0)
-fechaVencimiento.setHours(0, 0, 0, 0)
-
-const diferenciaDias =
-  (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
-
-  if (fechaVencimiento < hoy) {
-    return "Vencido"
-  }
-
-  if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
-    return "Próximo a vencer"
+  const fecha = new Date(`${item.fechaVencimiento}T00:00:00`)
+  return Number.isNaN(fecha.getTime()) ? null : fecha
 }
 
-  if (insumo.stockActual === 0) {
-    return "Sin Stock"
-  }
+function obtenerEstado(item) {
+  const stockActual = Number(item?.stockActual || 0)
+  const stockMinimo = Number(item?.stockMinimo || 0)
+  const fechaVencimiento = obtenerFechaVencimiento(item)
 
-  if (insumo.stockActual <= insumo.stockMinimo) {
-    return "Stock Bajo"
-  }
-
-  return "Ok"
-
-}
-
-function obtenerClaseEstado(insumo) {
-
+  if (fechaVencimiento) {
     const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
 
-    const fechaVencimiento = new Date(insumo.fechaVencimiento)
+    const diferenciaDias = Math.ceil(
+      (fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
+    )
 
-    hoy.setHours(0,0,0,0)
-    fechaVencimiento.setHours(0,0,0,0)
+    if (diferenciaDias < 0) return 'Vencido'
+    if (diferenciaDias <= DIAS_PROXIMO_VENCER) return 'Próximo a vencer'
+  }
 
-    const diferenciaDias =
-        (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
+  if (stockActual <= 0) return 'Sin stock'
+  if (stockActual <= stockMinimo) return 'Stock bajo'
 
-    if (fechaVencimiento < hoy) {
-        return "bg-danger"
-    }
-
-    if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
-        return "bg-warning text-dark"
-    }
-
-    if (insumo.stockActual === 0) {
-        return "bg-danger"
-    }
-
-    if (insumo.stockActual <= insumo.stockMinimo) {
-        return "bg-warning text-dark"
-    }
-
-    return "bg-success"
+  return 'OK'
 }
 
+function obtenerClaseEstado(item) {
+  const estado = obtenerEstado(item)
+
+  if (estado === 'Vencido' || estado === 'Sin stock') {
+    return 'text-bg-danger'
+  }
+
+  if (estado === 'Próximo a vencer' || estado === 'Stock bajo') {
+    return 'text-bg-warning'
+  }
+
+  return 'text-bg-success'
+}
 </script>
