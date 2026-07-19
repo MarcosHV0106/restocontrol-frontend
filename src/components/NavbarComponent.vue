@@ -114,6 +114,7 @@ const navegacion = [
   { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN'] },
   { nombre: 'Menú y categorías', descripcion: 'Platos, recetas y categorías', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
   { nombre: 'Inventario', descripcion: 'Insumos y lotes', ruta: '/inventario', icono: 'bi bi-box-seam', roles: ['ADMIN', 'ALMACENERO'] },
+  { nombre: 'Movimientos de inventario', descripcion: 'Entradas, mermas y consumos', ruta: '/movimientos-inventario', icono: 'bi bi-arrow-left-right', roles: ['ADMIN', 'ALMACENERO'] },
   { nombre: 'Alertas de inventario', descripcion: 'Stock y vencimientos', ruta: '/alertas-inventario', icono: 'bi bi-bell', roles: ['ADMIN', 'ALMACENERO'] },
   { nombre: 'Gestión de mesas', descripcion: 'Disponibilidad y atención', ruta: '/mesas', icono: 'bi bi-grid-3x3-gap', roles: ['ADMIN', 'MESERO'] },
   { nombre: 'Pedidos', descripcion: 'Órdenes del restaurante', ruta: '/pedidos', icono: 'bi bi-receipt', roles: ['ADMIN', 'MESERO'] },
