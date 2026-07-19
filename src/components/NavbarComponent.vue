@@ -113,13 +113,15 @@ const fechaActual = computed(() => new Date().toLocaleDateString('es-PE', {
 const navegacion = [
   { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN'] },
   { nombre: 'Menú y categorías', descripcion: 'Platos, recetas y categorías', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
+  { nombre: 'Inventario', descripcion: 'Insumos y lotes', ruta: '/inventario', icono: 'bi bi-box-seam', roles: ['ADMIN', 'ALMACENERO'] },
+  { nombre: 'Alertas de inventario', descripcion: 'Stock y vencimientos', ruta: '/alertas-inventario', icono: 'bi bi-bell', roles: ['ADMIN', 'ALMACENERO'] },
   { nombre: 'Gestión de mesas', descripcion: 'Disponibilidad y atención', ruta: '/mesas', icono: 'bi bi-grid-3x3-gap', roles: ['ADMIN', 'MESERO'] },
   { nombre: 'Pedidos', descripcion: 'Órdenes del restaurante', ruta: '/pedidos', icono: 'bi bi-receipt', roles: ['ADMIN', 'MESERO'] },
   { nombre: 'Caja', descripcion: 'Cobros y comprobantes', ruta: '/caja', icono: 'bi bi-wallet2', roles: ['ADMIN', 'MESERO', 'CAJERO'] },
   { nombre: 'Cocina', descripcion: 'Flujo de preparación', ruta: '/cocina', icono: 'bi bi-fire', roles: ['COCINERO'] },
   { nombre: 'Usuarios y roles', descripcion: 'Personal y permisos', ruta: '/usuarios', icono: 'bi bi-people', roles: ['ADMIN'] },
   { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN'] },
-  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'MESERO', 'CAJERO', 'COCINERO'] },
+  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'MESERO', 'CAJERO', 'COCINERO', 'ALMACENERO'] },
 ]
 
 const opcionesPermitidas = computed(() => navegacion.filter((opcion) => opcion.roles.includes(rolActual.value)))

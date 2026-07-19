@@ -14,6 +14,7 @@ import ReporteView from '@/views/ReporteView.vue'
 import CajaView from '@/views/CajaView.vue'
 import CocinaView from '@/views/CocinaView.vue'
 import InventarioView from '@/views/InventarioView.vue'
+import AlertasInventarioView from '@/views/AlertasInventarioView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -24,7 +25,8 @@ const routes = [
     // Rutas exclusivas para ADMIN
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
-    { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
+    { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
 
@@ -65,6 +67,7 @@ router.beforeEach((to) => {
         const userRole = authStore.usuario?.rol?.toUpperCase()
         if (userRole === 'ADMIN') return '/dashboard'
         if (userRole === 'COCINERO') return '/cocina'
+        if (userRole === 'ALMACENERO') return '/alertas-inventario'
         return userRole === 'CAJERO' ? '/caja' : '/mesas'
     }
 
@@ -85,6 +88,8 @@ router.beforeEach((to) => {
                 return '/caja'
             } else if (userRole === 'COCINERO') {
                 return '/cocina'
+            } else if (userRole === 'ALMACENERO') {
+                return '/alertas-inventario'
             } else {
                 return '/dashboard'
             }
