@@ -12,8 +12,12 @@
             <p class="text-muted mb-0">Gestión de insumos y lotes del restaurante</p>
           </div>
 
-          <button class="btn btn-success" @click="nuevoInsumo">
-            <i class="bi bi-plus-circle me-2"></i>Nuevo insumo
+          <button class="btn btn-primary-custom" @click="nuevoInsumo">
+
+            <i class="bi bi-plus-circle me-2"></i>
+
+            Nuevo Insumo
+
           </button>
         </div>
 
@@ -52,13 +56,8 @@
                     <td>{{ formatearCantidad(item.stockMinimo) }}</td>
                     <td>S/ {{ Number(item.costoUnitario || 0).toFixed(2) }}</td>
                     <td>
-                      <span
-                        class="badge"
-                        :class="Number(item.stockActual) <= Number(item.stockMinimo)
-                          ? 'text-bg-warning'
-                          : 'text-bg-success'"
-                      >
-                        {{ Number(item.stockActual) <= Number(item.stockMinimo) ? 'Stock bajo' : 'Disponible' }}
+                      <span class="badge" :class="obtenerClaseEstado(insumo)">
+                        {{ obtenerEstado(insumo) }}
                       </span>
                     </td>
                     <td class="text-center text-nowrap">
@@ -113,8 +112,13 @@
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Nombre</label>
-              <input v-model.trim="insumo.nombreInsumo" class="form-control" maxlength="100">
+
+              <label class="form-label">
+                Nombre
+              </label>
+
+              <input class="form-control" maxlength="100" v-model.trim="insumo.nombreInsumo" @input="filtrarNombre" />
+
             </div>
 
             <div class="col-md-6">
@@ -130,9 +134,23 @@
             </div>
 
             <div class="col-12">
-              <label class="form-label">Descripción</label>
-              <textarea v-model.trim="insumo.descripcion" class="form-control" maxlength="250"></textarea>
+
+              <label class="form-label">
+                Descripción
+              </label>
+
+              <textarea class="form-control" maxlength="250" v-model.trim="insumo.descripcion" />
+
             </div>
+            <div class="col-md-4">
+
+              <label class="form-label">
+
+                Stock Actual
+
+              </label>
+
+              <input type="number" class="form-control" v-model.number="insumo.stockActual" min="0" step="1">
 
             <div v-if="insumo.idInsumo" class="col-md-4">
               <label class="form-label">Stock actual</label>
@@ -141,13 +159,38 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label">Stock mínimo</label>
-              <input v-model.number="insumo.stockMinimo" type="number" min="0" step="0.0001" class="form-control">
+
+              <label class="form-label">
+
+                Stock Mínimo
+
+              </label>
+
+              <input type="number" class="form-control" v-model.number="insumo.stockMinimo" min="0" step="1">
+
             </div>
 
             <div class="col-md-4">
-              <label class="form-label">Costo unitario</label>
-              <input v-model.number="insumo.costoUnitario" type="number" min="0.01" step="0.01" class="form-control">
+
+              <label class="form-label">
+
+                Costo Unitario
+
+              </label>
+
+              <input type="number" class="form-control" v-model.number="insumo.costoUnitario" min="0.01" step="0.01">
+
+            </div>
+            <div class="col-md-6">
+
+              <label class="form-label">
+
+                Fecha de vencimiento
+
+              </label>
+
+              <input type="date" class="form-control" v-model="insumo.fechaVencimiento" :min="fechaHoy">
+
             </div>
           </div>
         </div>
@@ -162,19 +205,7 @@
     </div>
   </div>
 
-  <div id="lotesModal" class="modal fade" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div>
-            <h5 class="modal-title">Lotes de {{ insumoSeleccionado?.nombreInsumo }}</h5>
-            <small class="text-muted">
-              Stock total: {{ formatearCantidad(insumoSeleccionado?.stockActual) }}
-              {{ insumoSeleccionado?.unidadMedida }}
-            </small>
-          </div>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
+          <button type="button" class="btn btn-primary-custom" @click="guardarInsumo">
 
         <div class="modal-body">
           <div class="card border-success-subtle mb-4">
@@ -322,21 +353,29 @@ import {
   eliminarInsumo,
   obtenerInsumos
 } from '@/services/insumoService'
-import {
-  actualizarLote,
-  crearLote,
-  obtenerLotes,
-  retirarLote
-} from '@/services/loteInsumoService'
+import NavbarComponent from '@/components/NavbarComponent.vue';
+import SidebarComponent from '@/components/SidebarComponent.vue';
+import '@/assets/css/insumo.css'
+
+import { Modal } from 'bootstrap'
 
 const insumos = ref([])
 const lotes = ref([])
 const busqueda = ref('')
 const insumoSeleccionado = ref(null)
 const insumoEliminar = ref(null)
-const cargandoLotes = ref(false)
-const guardando = ref(false)
-const guardandoLote = ref(false)
+const DIAS_PROXIMO_VENCER = 3
+const insumo = ref({
+  idInsumo: null,
+  nombreInsumo: '',
+  descripcion: '',
+  unidadMedida: '',
+  stockActual: 0,
+  stockMinimo: 0,
+  costoUnitario: null,
+  fechaVencimiento: null
+})
+const fechaHoy = new Date().toISOString().split('T')[0]
 
 const insumo = ref(insumoVacio())
 const nuevoLote = ref(loteVacio())
@@ -510,15 +549,75 @@ function prepararEliminar(item) {
   Modal.getOrCreateInstance(document.getElementById('confirmarEliminarModal')).show()
 }
 
-async function confirmarEliminacion() {
-  if (!insumoEliminar.value) return
-  try {
-    await eliminarInsumo(insumoEliminar.value.idInsumo)
-    Modal.getOrCreateInstance(document.getElementById('confirmarEliminarModal')).hide()
-    insumoEliminar.value = null
-    await cargarInsumos()
-  } catch (error) {
-    alert(mensajeError(error))
-  }
+function filtrarNombre() {
+  insumo.value.nombreInsumo =
+    insumo.value.nombreInsumo.replace(
+      /[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s().,/ -]/g,
+      ''
+    )
 }
+
+function obtenerEstado(insumo) {
+
+  const hoy = new Date()
+
+  const fechaVencimiento = new Date(insumo.fechaVencimiento)
+
+  hoy.setHours(0, 0, 0, 0)
+fechaVencimiento.setHours(0, 0, 0, 0)
+
+const diferenciaDias =
+  (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
+
+  if (fechaVencimiento < hoy) {
+    return "Vencido"
+  }
+
+  if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
+    return "Próximo a vencer"
+}
+
+  if (insumo.stockActual === 0) {
+    return "Sin Stock"
+  }
+
+  if (insumo.stockActual <= insumo.stockMinimo) {
+    return "Stock Bajo"
+  }
+
+  return "Ok"
+
+}
+
+function obtenerClaseEstado(insumo) {
+
+    const hoy = new Date()
+
+    const fechaVencimiento = new Date(insumo.fechaVencimiento)
+
+    hoy.setHours(0,0,0,0)
+    fechaVencimiento.setHours(0,0,0,0)
+
+    const diferenciaDias =
+        (fechaVencimiento - hoy) / (1000 * 60 * 60 * 24)
+
+    if (fechaVencimiento < hoy) {
+        return "bg-danger"
+    }
+
+    if (diferenciaDias <= DIAS_PROXIMO_VENCER) {
+        return "bg-warning text-dark"
+    }
+
+    if (insumo.stockActual === 0) {
+        return "bg-danger"
+    }
+
+    if (insumo.stockActual <= insumo.stockMinimo) {
+        return "bg-warning text-dark"
+    }
+
+    return "bg-success"
+}
+
 </script>
