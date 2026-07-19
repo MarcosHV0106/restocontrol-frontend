@@ -35,11 +35,11 @@ const routes = [
     // Ruta exclusiva para el personal de cocina
     { path: '/cocina', name: 'cocina', component: CocinaView, meta: { requiresAuth: true, roles: ['COCINERO'] } },
 
-    // Rutas compartidas (ADMIN y MESERO pueden entrar)
-    { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
-    { path: '/pedidos', name: 'pedidos', component: PedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
-    { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO'] } },
-    { path: '/caja', name: 'caja', component: CajaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
+    // Rutas operativas compartidas por salon y caja
+    { path: '/mesas', name: 'mesas', component: MesaView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
+    { path: '/pedidos', name: 'pedidos', component: PedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
+    { path: '/nuevo-pedido', name: 'nuevo-pedido', component: NuevoPedidoView, meta: { requiresAuth: true, roles: ['ADMIN', 'MESERO', 'CAJERO'] } },
+    { path: '/caja', name: 'caja', component: CajaView, meta: { requiresAuth: true, roles: ['ADMIN', 'CAJERO'] } },
     { path: '/configuracion', name: 'configuracion', component: ConfiguracionView, meta: { requiresAuth: true } }
 ]
 
@@ -70,7 +70,7 @@ router.beforeEach((to) => {
         if (userRole === 'ADMIN') return '/dashboard'
         if (userRole === 'COCINERO') return '/cocina'
         if (userRole === 'ALMACENERO') return '/alertas-inventario'
-        return userRole === 'CAJERO' ? '/caja' : '/mesas'
+        return userRole === 'CAJERO' ? '/pedidos' : '/mesas'
     }
 
     // 3. VERIFICACIÓN DE ROLES (RBAC)
@@ -87,7 +87,7 @@ router.beforeEach((to) => {
             if (userRole === 'MESERO') {
                 return '/mesas'
             } else if (userRole === 'CAJERO') {
-                return '/caja'
+                return '/pedidos'
             } else if (userRole === 'COCINERO') {
                 return '/cocina'
             } else if (userRole === 'ALMACENERO') {

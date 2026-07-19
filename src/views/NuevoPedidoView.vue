@@ -26,12 +26,59 @@
           <span>{{ errorCarga }}</span>
         </div>
 
+        <section v-if="!esEdicion" class="order-context-card" aria-labelledby="order-context-title">
+          <div class="order-context-heading">
+            <div>
+              <span class="section-kicker">Tipo de atención</span>
+              <h2 id="order-context-title">¿Cómo se entregará este pedido?</h2>
+            </div>
+            <span class="draft-pill"><i class="bi bi-pencil-square"></i> Borrador</span>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="modalidadPedido" class="form-label">Modalidad</label>
+              <select id="modalidadPedido" v-model.number="modalidadSeleccionadaId" class="form-select" @change="alCambiarModalidad">
+                <option :value="null" disabled>Selecciona una modalidad</option>
+                <option v-for="modalidad in modalidades" :key="modalidad.idModalidadPedido" :value="modalidad.idModalidadPedido">
+                  {{ modalidad.nombreModalidad }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="esModalidadMesa" class="col-md-6">
+              <label for="mesaPedido" class="form-label">Mesa disponible</label>
+              <select id="mesaPedido" v-model.number="idMesa" class="form-select" @change="actualizarNumeroMesa">
+                <option :value="null" disabled>Selecciona una mesa</option>
+                <option v-for="mesa in mesasDisponibles" :key="mesa.idMesa" :value="mesa.idMesa">
+                  Mesa {{ mesa.numeroMesa }} · Piso {{ mesa.piso }} · {{ mesa.capacidad }} personas
+                </option>
+              </select>
+            </div>
+
+            <div v-if="requiereDatosCliente" class="col-md-6">
+              <label for="clienteNombre" class="form-label">Nombre del cliente</label>
+              <input id="clienteNombre" v-model.trim="clienteNombre" maxlength="120" class="form-control" placeholder="Ej. Ana Torres" />
+            </div>
+
+            <div v-if="requiereDatosCliente" class="col-md-6">
+              <label for="clienteTelefono" class="form-label">Teléfono {{ esDelivery ? '(obligatorio)' : '(opcional)' }}</label>
+              <input id="clienteTelefono" v-model.trim="clienteTelefono" maxlength="20" class="form-control" placeholder="Ej. 987 654 321" />
+            </div>
+
+            <div v-if="esDelivery" class="col-12">
+              <label for="direccionEntrega" class="form-label">Dirección de entrega</label>
+              <input id="direccionEntrega" v-model.trim="direccionEntrega" maxlength="250" class="form-control" placeholder="Calle, número y referencia" />
+            </div>
+          </div>
+        </section>
+
         <section class="order-meta-grid" aria-label="Información de la orden">
           <div class="contenedor-info">
             <i class="bi bi-grid text-brand"></i>
             <div class="d-flex flex-column">
-              <span class="info-label">Mesa</span>
-              <span class="info-value">{{ numeroMesaFormateado }}</span>
+              <span class="info-label">Atención</span>
+              <span class="info-value">{{ ubicacionMostrada }}</span>
             </div>
           </div>
 
@@ -184,7 +231,7 @@
                     @click="procesarPedido"
                   >
                     <span v-if="cargando" class="spinner-border spinner-border-sm me-2"></span>
-                    {{ esEdicion ? 'Actualizar orden' : 'Registrar pedido' }}
+                    {{ esEdicion ? 'Actualizar borrador' : 'Guardar borrador' }}
                   </button>
                 </div>
               </div>
@@ -208,6 +255,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue';
 import SidebarComponent from '@/components/SidebarComponent.vue';
 import pedidoService from '@/services/pedidoService';
 import * as menuService from '@/services/menuService';
+import { obtenerMesas } from '@/services/mesaService';
 import { useAuthStore } from '@/stores/authStore';
 
 const route = useRoute();
@@ -226,6 +274,12 @@ const pedidoCargado = ref(null);
 const usuarioCreador = ref(null);
 const estadoPedido = ref(null);
 const fechaPedido = ref(null);
+const modalidades = ref([]);
+const mesas = ref([]);
+const modalidadSeleccionadaId = ref(null);
+const clienteNombre = ref('');
+const clienteTelefono = ref('');
+const direccionEntrega = ref('');
 
 const cargandoAlimentos = ref(false);
 const cargando = ref(false);
@@ -249,18 +303,33 @@ const nombreCreador = computed(() => {
   );
 });
 
-const nombreEstado = computed(() => String(estadoPedido.value?.nombreEstado || '').toUpperCase());
-const soloLectura = computed(
-  () =>
-    estadoPedido.value?.idEstadoPedido === 4 ||
-    ['PAGADO', 'COBRADO', 'CANCELADO'].includes(nombreEstado.value),
+const soloLectura = computed(() => esEdicion.value && (!pedidoCargado.value || !pedidoCargado.value.editable));
+const modalidadSeleccionada = computed(() =>
+  modalidades.value.find((modalidad) => modalidad.idModalidadPedido === modalidadSeleccionadaId.value),
 );
-const estadoMostrado = computed(() => estadoPedido.value?.nombreEstado || (esEdicion.value ? 'EN CURSO' : 'NUEVA ORDEN'));
+const tipoModalidad = computed(() => normalizar(modalidadSeleccionada.value?.nombreModalidad));
+const esModalidadMesa = computed(() => ['MESA', 'SALON', 'EN_MESA'].includes(tipoModalidad.value));
+const esDelivery = computed(() => ['DELIVERY', 'REPARTO'].includes(tipoModalidad.value));
+const requiereDatosCliente = computed(() => Boolean(tipoModalidad.value) && !esModalidadMesa.value);
+const mesasDisponibles = computed(() =>
+  mesas.value.filter((mesa) =>
+    ['libre', 'reservada'].includes(String(mesa.estadoMesa?.descripcion || '').toLowerCase()) || mesa.idMesa === idMesa.value,
+  ),
+);
+const etapaMostrada = computed(() => etiquetaEtapa(pedidoCargado.value?.etapaFlujo));
+const estadoMostrado = computed(() => etapaMostrada.value || estadoPedido.value?.nombreEstado || (esEdicion.value ? 'EN CURSO' : 'NUEVA ORDEN'));
 const tituloPagina = computed(() => {
   if (!esEdicion.value) return 'Nuevo Pedido';
   return soloLectura.value ? `Pedido #${idPedido.value}` : `Editar Pedido #${idPedido.value}`;
 });
 const numeroMesaFormateado = computed(() => String(numeroMesa.value || 0).padStart(2, '0'));
+const ubicacionMostrada = computed(() => {
+  if (esModalidadMesa.value || (!modalidadSeleccionada.value && idMesa.value)) {
+    return idMesa.value ? `Mesa ${numeroMesaFormateado.value}` : 'Mesa por seleccionar';
+  }
+  const modalidad = modalidadSeleccionada.value?.nombreModalidad;
+  return modalidad ? `${modalidad}${clienteNombre.value ? ` · ${clienteNombre.value}` : ''}` : 'Por definir';
+});
 
 const fechaPedidoFormateada = computed(() => {
   const fecha = fechaPedido.value ? new Date(fechaPedido.value) : new Date();
@@ -292,9 +361,11 @@ const cargarDatosBase = async () => {
   cargandoAlimentos.value = true;
   errorCarga.value = '';
   try {
-    const [respuestaAlimentos, respuestaCategorias] = await Promise.all([
+    const [respuestaAlimentos, respuestaCategorias, respuestaModalidades, respuestaMesas] = await Promise.all([
       menuService.obtenerAlimentos(),
       menuService.obtenerCategorias(),
+      pedidoService.getModalidades(),
+      obtenerMesas(),
     ]);
 
     alimentos.value = respuestaAlimentos
@@ -306,6 +377,20 @@ const cargarDatosBase = async () => {
         .filter((categoria) => !categoria.eliminado)
         .map((categoria) => ({ id: categoria.idCategoria, nombre: categoria.nombreCategoria })),
     ];
+    modalidades.value = respuestaModalidades
+      .filter((modalidad) => !modalidad.eliminado)
+      .map((modalidad) => ({
+        idModalidadPedido: modalidad.idModalidadPedido,
+        nombreModalidad: modalidad.nombreModalidad,
+      }));
+    mesas.value = respuestaMesas;
+
+    if (!modalidadSeleccionadaId.value) {
+      modalidadSeleccionadaId.value = modalidades.value.find((modalidad) =>
+        ['MESA', 'SALON', 'EN_MESA'].includes(normalizar(modalidad.nombreModalidad)),
+      )?.idModalidadPedido || modalidades.value[0]?.idModalidadPedido || null;
+    }
+    actualizarNumeroMesa();
 
     await cargarPedido();
   } catch (error) {
@@ -331,6 +416,10 @@ const cargarPedido = async () => {
   numeroMesa.value = pedido.mesa?.numeroMesa || numeroMesa.value;
   usuarioCreador.value = pedido.usuario || null;
   estadoPedido.value = pedido.estadoPedido || null;
+  modalidadSeleccionadaId.value = pedido.modalidadPedido?.idModalidadPedido || null;
+  clienteNombre.value = pedido.clienteNombre || '';
+  clienteTelefono.value = pedido.clienteTelefono || '';
+  direccionEntrega.value = pedido.direccionEntrega || '';
   fechaPedido.value = pedido.fechaPedido || null;
   observacion.value = pedido.observacion || '';
   carrito.value = (pedido.detalles || []).map((detalle) => {
@@ -375,14 +464,24 @@ const quitarItem = (item) => {
 };
 
 const procesarPedido = async () => {
-  if (soloLectura.value || !idMesa.value || carrito.value.length === 0) return;
+  if (soloLectura.value || carrito.value.length === 0) return;
+
+  const errorContexto = validarContextoPedido();
+  if (errorContexto) {
+    errorCarga.value = errorContexto;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
 
   cargando.value = true;
   try {
     const pedidoDto = {
-      idMesa: idMesa.value,
-      idModalidadPedido: pedidoCargado.value?.modalidadPedido?.idModalidadPedido || 1,
+      idMesa: esModalidadMesa.value ? idMesa.value : null,
+      idModalidadPedido: modalidadSeleccionadaId.value,
       observacion: observacion.value,
+      clienteNombre: requiereDatosCliente.value ? clienteNombre.value : null,
+      clienteTelefono: requiereDatosCliente.value ? clienteTelefono.value : null,
+      direccionEntrega: esDelivery.value ? direccionEntrega.value : null,
       detalles: carrito.value.map((item) => ({
         idAlimento: item.idAlimento,
         cantidad: item.cantidad,
@@ -408,6 +507,49 @@ const regresar = () => {
 };
 
 const irAlResumen = () => panelPedido.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+const alCambiarModalidad = () => {
+  errorCarga.value = '';
+  if (!esModalidadMesa.value) {
+    idMesa.value = null;
+    numeroMesa.value = 0;
+  }
+  if (!esDelivery.value) direccionEntrega.value = '';
+};
+
+const actualizarNumeroMesa = () => {
+  const mesa = mesas.value.find((item) => item.idMesa === idMesa.value);
+  numeroMesa.value = mesa?.numeroMesa || numeroMesa.value || 0;
+};
+
+const validarContextoPedido = () => {
+  if (!modalidadSeleccionadaId.value) return 'Selecciona la modalidad del pedido.';
+  if (esModalidadMesa.value && !idMesa.value) return 'Selecciona una mesa disponible.';
+  if (requiereDatosCliente.value && !clienteNombre.value.trim()) return 'Ingresa el nombre del cliente.';
+  if (esDelivery.value && !clienteTelefono.value.trim()) return 'Ingresa el teléfono para el delivery.';
+  if (esDelivery.value && !direccionEntrega.value.trim()) return 'Ingresa la dirección de entrega.';
+  return '';
+};
+
+const normalizar = (valor) =>
+  String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+
+const etiquetaEtapa = (etapa) => ({
+  BORRADOR: 'Borrador',
+  RECIBIDO: 'Recibido en cocina',
+  EN_PREPARACION: 'En preparación',
+  LISTO: 'Listo',
+  ENTREGADO: 'Entregado',
+  CUENTA_SOLICITADA: 'Cuenta solicitada',
+  PAGADO: 'Pagado',
+  CANCELADO: 'Cancelado',
+})[etapa] || '';
 
 const formatearMonto = (monto) => Number(monto || 0).toFixed(2);
 
@@ -587,6 +729,14 @@ onMounted(cargarDatosBase);
 .order-back-button { align-items: center; background: #fff; border: 1px solid var(--rc-border-strong); border-radius: 9px; color: var(--rc-ink-soft); display: inline-flex; font-size: .7rem; font-weight: 700; min-height: 40px; padding: .45rem .7rem; }
 .order-back-button:hover { background: #fbf2ed; border-color: #d28a6d; color: var(--rc-primary-hover); }
 .order-editor-page > .alert { border: 1px solid var(--rc-border); border-radius: 9px; font-size: .7rem; }
+.order-context-card { background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 13px; box-shadow: var(--rc-shadow-xs); margin-bottom: .9rem; padding: 1rem; }
+.order-context-heading { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: .8rem; }
+.order-context-heading h2 { color: var(--rc-ink); font-size: 1rem; font-weight: 760; margin: .08rem 0 0; }
+.section-kicker { color: var(--rc-primary-hover); display: block; font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.draft-pill { align-items: center; background: var(--rc-warning-soft); border-radius: 999px; color: var(--rc-warning); display: inline-flex; font-size: .6rem; font-weight: 760; gap: .35rem; padding: .38rem .58rem; }
+.order-context-card .form-label { color: var(--rc-ink-soft); font-size: .64rem; font-weight: 720; }
+.order-context-card .form-control,
+.order-context-card .form-select { background-color: var(--rc-surface); border-color: var(--rc-border); color: var(--rc-ink); font-size: .7rem; min-height: 40px; }
 .order-meta-grid { display: grid; gap: .65rem; grid-template-columns: repeat(4,minmax(0,1fr)); margin-bottom: .9rem; }
 .order-meta-grid .contenedor-info { border-radius: 11px; box-shadow: var(--rc-shadow-xs); min-height: 68px; padding: .65rem .75rem; width: 100%; }
 .order-meta-grid .contenedor-info > i { align-items: center; background: var(--rc-primary-soft); border-radius: 8px; color: var(--rc-primary-hover) !important; display: flex; height: 34px; justify-content: center; width: 34px; }
@@ -618,6 +768,8 @@ onMounted(cargarDatosBase);
 body.dark-theme .menu-selector-card,
 body.dark-theme .order-panel,
 body.dark-theme .order-panel .card-header { background: var(--rc-surface) !important; }
+body.dark-theme .order-context-card .form-control,
+body.dark-theme .order-context-card .form-select { background-color: #303031; color: var(--rc-ink); }
 body.dark-theme .food-img-placeholder,
 body.dark-theme .cart-item,
 body.dark-theme .qty-selector { background: #323233; }
@@ -629,6 +781,7 @@ body.dark-theme .qty-selector { background: #323233; }
   .order-editor-page { padding: 1rem 1rem 5rem; }
   .order-editor-heading { align-items: flex-start; flex-direction: column; }
   .order-back-button { width: 100%; }
+  .order-context-heading { align-items: flex-start; }
   .order-meta-grid { grid-template-columns: 1fr 1fr; }
   .order-meta-grid .contenedor-info { min-height: 62px; padding: .55rem; }
   .menu-selector-card { min-height: 420px; padding: .65rem; }

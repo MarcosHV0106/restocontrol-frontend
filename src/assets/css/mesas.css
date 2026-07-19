@@ -19,6 +19,7 @@
 .mesa-alert { align-items: center; background: var(--rc-danger-soft); border: 1px solid #efc8c5; border-radius: 9px; color: var(--rc-danger); display: flex; font-size: .68rem; gap: .45rem; margin-bottom: .8rem; padding: .6rem .7rem; }
 .mesa-alert span { flex: 1; }
 .mesa-alert button { background: transparent; border: 0; color: inherit; font-weight: 700; text-decoration: underline; }
+.mesa-alert-success { background: var(--rc-success-soft); border-color: #b9dfcd; color: var(--rc-success); }
 .mesa-kpis { margin-bottom: .85rem; }
 .main-container-mesas .card-kpi { align-items: center; background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 11px; box-shadow: var(--rc-shadow-xs); display: flex; justify-content: space-between; min-height: 78px; padding: .75rem .85rem; }
 .main-container-mesas .card-kpi.libres { border-left: 3px solid #4a9a6d; border-bottom: 1px solid var(--rc-border); }
