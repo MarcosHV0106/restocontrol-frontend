@@ -122,6 +122,11 @@
                     <span>{{ pedido.observacion }}</span>
                   </div>
 
+                  <div v-if="pedido.fechaConsumoInventario" class="inventory-consumption">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    Insumos descontados a las <strong>{{ hora(pedido.fechaConsumoInventario) }}</strong>
+                  </div>
+
                   <div v-if="pedido.estado === 'EN_PREPARACION'" class="stage-detail">
                     <i class="bi bi-stopwatch"></i>
                     Tiempo en preparación: <strong>{{ tiempoPreparacion(pedido) }}</strong>
@@ -437,7 +442,7 @@ function accionPedido(pedido) {
     RECIBIDO: {
       destino: 'EN_PREPARACION',
       etiqueta: 'Iniciar preparación',
-      confirmacion: 'preparación iniciada',
+      confirmacion: 'preparación iniciada e inventario actualizado',
       icono: 'bi bi-play-fill',
     },
     EN_PREPARACION: {

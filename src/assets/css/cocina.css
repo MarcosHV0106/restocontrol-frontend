@@ -73,6 +73,7 @@
 .order-items li { color: #514741; display: flex; font-size: 0.74rem; gap: 0.45rem; line-height: 1.35; padding: 0.12rem 0; }
 .order-items li strong { color: #342d29; min-width: 20px; }
 .order-observation { align-items: flex-start; background: #fff8ec; border: 1px solid #f1dec0; border-radius: 7px; color: #7c5d2e; display: flex; font-size: 0.66rem; gap: 0.35rem; margin-top: 0.55rem; padding: 0.4rem 0.5rem; }
+.inventory-consumption { align-items: center; background: #edf7f1; border: 1px solid #cbe5d4; border-radius: 7px; color: #367653; display: flex; font-size: 0.63rem; gap: 0.32rem; margin-top: 0.55rem; padding: 0.38rem 0.48rem; }
 .stage-detail { align-items: center; color: #6d625c; display: flex; font-size: 0.65rem; gap: 0.3rem; margin-top: 0.55rem; }
 .stage-detail i { color: #508ab0; }
 .stage-detail.is-ready,

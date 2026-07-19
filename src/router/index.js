@@ -15,6 +15,7 @@ import CajaView from '@/views/CajaView.vue'
 import CocinaView from '@/views/CocinaView.vue'
 import InventarioView from '@/views/InventarioView.vue'
 import AlertasInventarioView from '@/views/AlertasInventarioView.vue'
+import MovimientosInventarioView from '@/views/MovimientosInventarioView.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -26,6 +27,7 @@ const routes = [
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
+    { path: '/movimientos-inventario', name: 'movimientos-inventario', component: MovimientosInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
