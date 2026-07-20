@@ -137,7 +137,7 @@
 
           <footer class="report-card-footer">
             <span><i class="bi bi-mouse"></i>Usa los controles del informe para filtrar y explorar los datos.</span>
-            <span><i class="bi bi-shield-check"></i>Acceso exclusivo de administrador</span>
+            <span><i class="bi bi-shield-check"></i>Acceso ejecutivo autorizado</span>
           </footer>
         </section>
       </main>

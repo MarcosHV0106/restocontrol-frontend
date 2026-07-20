@@ -27,14 +27,14 @@
         <div class="sidebar-nav-container overflow-auto p-3 flex-grow-1">
             <ul class="nav nav-pills flex-column mb-auto gap-1">
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                <li class="nav-item" v-if="['ADMIN', 'GERENTE'].includes(rolActual)">
                     <RouterLink to="/dashboard" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-grid-1x2 me-3 fs-5"></i>
                         <span>Dashboard</span>
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                <li class="nav-item" v-if="rolActual === 'ADMIN'">
                     <RouterLink to="/menu" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-tags me-3 fs-5"></i>
                         <span>Menú y Categorías</span>
@@ -111,14 +111,14 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                <li class="nav-item" v-if="rolActual === 'ADMIN'">
                     <RouterLink to="/usuarios" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-people me-3 fs-5"></i>
                         <span>Usuarios y Roles</span>
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="usuarioActual?.rol?.toUpperCase() === 'ADMIN'">
+                <li class="nav-item" v-if="['ADMIN', 'GERENTE'].includes(rolActual)">
                     <RouterLink to="/reportes" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <i class="bi bi-bar-chart-line me-3 fs-5"></i>
                         <span>Reportes</span>
@@ -143,6 +143,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { getHomeRouteForRole, normalizeRole } from '@/router/roleNavigation'
 import '@/assets/css/sidebar.css'
 
 // 1. Instanciamos el store de autenticación
@@ -153,13 +154,8 @@ const sidebarAbierto = ref(false)
 // 2. Extraemos el usuario de forma reactiva para que el menú
 // se actualice instantáneamente si cambia la sesión
 const { usuario: usuarioActual } = storeToRefs(authStore)
-const rolActual = computed(() => String(usuarioActual.value?.rol || '').toUpperCase())
-const rutaInicio = computed(() => {
-    if (rolActual.value === 'ADMIN') return '/dashboard'
-    if (rolActual.value === 'COCINERO') return '/cocina'
-    if (rolActual.value === 'ALMACENERO') return '/alertas-inventario'
-    return rolActual.value === 'CAJERO' ? '/pedidos' : '/mesas'
-})
+const rolActual = computed(() => normalizeRole(usuarioActual.value?.rol))
+const rutaInicio = computed(() => getHomeRouteForRole(rolActual.value))
 
 watch(() => route.fullPath, () => {
     sidebarAbierto.value = false

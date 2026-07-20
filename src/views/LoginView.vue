@@ -162,6 +162,7 @@ import '@/assets/css/login.css'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { getHomeRouteForRole } from '@/router/roleNavigation'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -282,24 +283,8 @@ async function iniciarSesion() {
     await authStore.login(correo.value, clave.value)
     saveEmailToHistory(correo.value)
 
-    // 2. Obtenemos el rol de Pinia y lo aseguramos en mayúsculas
-    const rolUsuario = authStore.usuario?.rol?.toUpperCase()
-
-    // 3. Evaluamos el rol para decidir la ruta de destino
-    if (rolUsuario === 'ADMIN') {
-      router.push('/dashboard')
-    } else if (rolUsuario === 'MESERO') {
-      router.push('/mesas')
-    } else if (rolUsuario === 'CAJERO') {
-      router.push('/pedidos')
-    } else if (rolUsuario === 'COCINERO') {
-      router.push('/cocina')
-    } else if (rolUsuario === 'ALMACENERO') {
-      router.push('/alertas-inventario')
-    } else {
-      // Ruta por defecto por si en el futuro agregas más roles (ej. CAJERO)
-      router.push('/login')
-    }
+    // 2. Redirigimos a la página de inicio definida para el rol autenticado.
+    await router.push(getHomeRouteForRole(authStore.usuario?.rol))
 
   } catch (error) {
     mensajeError.value =
