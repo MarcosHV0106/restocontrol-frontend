@@ -125,6 +125,13 @@
                     </RouterLink>
                 </li>
 
+                <li class="nav-item" v-if="['ADMIN', 'GERENTE'].includes(rolActual)">
+                    <RouterLink to="/auditoria" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-shield-check me-3 fs-5"></i>
+                        <span>Auditoría</span>
+                    </RouterLink>
+                </li>
+
             </ul>
         </div>
 
