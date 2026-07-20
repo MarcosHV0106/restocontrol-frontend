@@ -207,11 +207,17 @@
                             <div>
                                 <strong>Estimación del día</strong>
                                 <p>Planifica las porciones que esperas vender y valida los insumos antes de guardar.</p>
+                                <small v-if="cambiosEstimacion" class="estimate-audit estimate-audit-pending"><i class="bi bi-pencil"></i>Cambios sin guardar</small>
+                                <small v-else-if="datosEstimacion.guardada" class="estimate-audit">
+                                    <i class="bi bi-person-check"></i>
+                                    Guardada por {{ datosEstimacion.responsable || 'un usuario autorizado' }}
+                                    <template v-if="datosEstimacion.fechaActualizacion"> · {{ fechaHora(datosEstimacion.fechaActualizacion) }}</template>
+                                </small>
                             </div>
                         </div>
                         <label class="estimate-date">
                             <span><i class="bi bi-calendar3"></i> Fecha de planificación</span>
-                            <input v-model="fechaEstimacion" type="date" :min="fechaMinima" :max="fechaMaxima" @change="cargarEstimacion">
+                            <input v-model="fechaEstimacion" type="date" :min="fechaMinimaConsulta" :max="fechaMaxima" @change="cargarEstimacion">
                         </label>
                     </section>
 
@@ -221,6 +227,16 @@
                     <div v-if="mensajeEstimacion" class="estimate-success" role="status">
                         <i class="bi bi-check-circle-fill"></i><span>{{ mensajeEstimacion }}</span>
                     </div>
+                    <div v-if="fechaEsPasada" class="estimate-history" role="status">
+                        <i class="bi bi-clock-history"></i><span>Vista histórica de solo lectura. Puedes consultar la planificación y el avance registrado, pero no modificarla.</span>
+                    </div>
+
+                    <section class="estimate-summary" aria-label="Resumen de estimación diaria">
+                        <article><i class="bi bi-bullseye"></i><div><span>Meta planificada</span><strong>{{ totalPorcionesEstimadas }}</strong></div></article>
+                        <article><i class="bi bi-fire"></i><div><span>Procesadas por Cocina</span><strong>{{ totalProcesadasEstimadas }}</strong></div></article>
+                        <article><i class="bi bi-hourglass-split"></i><div><span>Pendientes</span><strong>{{ totalPendientesEstimadas }}</strong></div></article>
+                        <article><i :class="estadoGeneralEstimacion.icono"></i><div><span>Estado del plan</span><strong>{{ estadoGeneralEstimacion.texto }}</strong></div></article>
+                    </section>
 
                     <section class="estimate-card management-table-card">
                         <div v-if="cargandoEstimacion" class="estimate-loading">
@@ -234,12 +250,13 @@
                                     <tr>
                                         <th>Alimento</th>
                                         <th>Categoría</th>
-                                        <th class="text-center">Cantidad a preparar (porciones)</th>
+                                        <th class="text-center">Meta del día</th>
+                                        <th>Avance real</th>
                                         <th>Estado de insumos</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="fila in filasEstimacion" :key="fila.idAlimento">
+                                    <tr v-for="fila in filasEstimacion" :key="fila.idAlimento" :class="{ 'estimate-row-unavailable': !fila.planificable }">
                                         <td data-label="Alimento">
                                             <div class="estimate-food">
                                                 <span><i class="bi bi-egg-fried"></i></span>
@@ -250,10 +267,21 @@
                                             <span class="badge rounded-pill badge-soft-blue">{{ fila.categoria }}</span>
                                         </td>
                                         <td data-label="Porciones">
-                                            <div class="estimate-stepper">
-                                                <button type="button" :disabled="fila.porciones <= 0 || guardandoEstimacion" aria-label="Reducir porciones" @click="ajustarPorciones(fila, -1)">−</button>
-                                                <input v-model.number="fila.porciones" type="number" min="0" max="10000" :disabled="guardandoEstimacion" @change="normalizarPorciones(fila)">
-                                                <button type="button" :disabled="fila.porciones >= 10000 || guardandoEstimacion" aria-label="Aumentar porciones" @click="ajustarPorciones(fila, 1)">+</button>
+                                            <div v-if="fila.planificable" class="estimate-stepper">
+                                                <button type="button" :disabled="fila.porciones <= 0 || guardandoEstimacion || fechaEsPasada" aria-label="Reducir porciones" @click="ajustarPorciones(fila, -1)">−</button>
+                                                <input v-model.number="fila.porciones" type="number" min="0" max="10000" :disabled="guardandoEstimacion || fechaEsPasada" @change="normalizarPorciones(fila)">
+                                                <button type="button" :disabled="fila.porciones >= 10000 || guardandoEstimacion || fechaEsPasada" aria-label="Aumentar porciones" @click="ajustarPorciones(fila, 1)">+</button>
+                                            </div>
+                                            <div v-else class="estimate-unavailable">
+                                                <span>Receta pendiente</span>
+                                                <button v-if="fila.porciones > 0 && !fechaEsPasada" type="button" @click="retirarPlatoLegado(fila)">Retirar del plan</button>
+                                            </div>
+                                        </td>
+                                        <td data-label="Avance">
+                                            <div class="estimate-progress">
+                                                <strong>{{ fila.porcionesProcesadas }} / {{ fila.porciones }}</strong>
+                                                <small>{{ fila.porcionesPendientes }} pendientes</small>
+                                                <span><i :style="{ width: porcentajeAvance(fila) + '%' }"></i></span>
                                             </div>
                                         </td>
                                         <td data-label="Estado">
@@ -265,7 +293,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="filasEstimacion.length === 0">
-                                        <td colspan="4" class="management-empty">
+                                        <td colspan="5" class="management-empty">
                                             <i class="bi bi-egg-fried"></i><strong>No hay platos disponibles</strong>
                                             <span>Activa platos y configura sus recetas para poder planificarlos.</span>
                                         </td>
@@ -279,9 +307,11 @@
                         <i class="bi bi-exclamation-octagon-fill"></i>
                         <div>
                             <strong>La planificación necesita reposición</strong>
-                            <span v-for="insumo in insumosFaltantes" :key="insumo.idInsumo">
-                                {{ insumo.insumo }}: faltan {{ formatearCantidad(insumo.faltante) }} {{ insumo.unidadMedida }}
-                            </span>
+                            <span>{{ fechaEsPasada ? 'Faltantes registrados al consultar esta fecha histórica.' : 'La meta quedó registrada; abastece estos insumos antes de preparar las porciones pendientes.' }}</span>
+                            <article v-for="insumo in insumosFaltantes" :key="insumo.idInsumo">
+                                <span><b>{{ insumo.insumo }}</b> · faltan {{ formatearCantidad(insumo.faltante) }} {{ insumo.unidadMedida }}</span>
+                                <button v-if="!fechaEsPasada" type="button" @click="abrirReposicion(insumo)"><i class="bi bi-cart-plus"></i>Abastecer</button>
+                            </article>
                         </div>
                     </div>
 
@@ -290,10 +320,11 @@
                             <span>Porciones planificadas</span>
                             <strong>{{ totalPorcionesEstimadas }}</strong>
                         </div>
-                        <button type="button" class="btn btn-brand" :disabled="cargandoEstimacion || guardandoEstimacion || !filasEstimacion.length" @click="validarYGuardarEstimacion">
+                        <button type="button" class="btn btn-brand" :disabled="cargandoEstimacion || guardandoEstimacion || !filasEstimacion.length || fechaEsPasada" @click="validarYGuardarEstimacion">
                             <span v-if="guardandoEstimacion" class="spinner-border spinner-border-sm"></span>
+                            <i v-else-if="fechaEsPasada" class="bi bi-lock"></i>
                             <i v-else class="bi bi-shield-check"></i>
-                            {{ guardandoEstimacion ? 'Validando...' : 'Validar y guardar estimación' }}
+                            {{ fechaEsPasada ? 'Estimación histórica' : guardandoEstimacion ? 'Validando...' : 'Validar y guardar estimación' }}
                         </button>
                     </footer>
                 </div>
@@ -528,7 +559,7 @@ import '@/assets/css/menu.css'
 import '@/assets/css/management.css'
 import { ref, computed, onMounted, watch } from 'vue'
 import * as bootstrap from 'bootstrap'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import SidebarComponent from '@/components/SidebarComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
@@ -537,6 +568,7 @@ import * as menuService from '@/services/menuService'
 import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const esAlmacenero = computed(() => String(authStore.usuario?.rol || '').toUpperCase() === 'ALMACENERO')
 
@@ -548,6 +580,8 @@ const fechaLocal = fecha => {
 }
 
 const hoy = new Date()
+const inicioHistorialEstimacion = new Date(hoy)
+inicioHistorialEstimacion.setDate(inicioHistorialEstimacion.getDate() - 365)
 const limiteEstimacion = new Date(hoy)
 limiteEstimacion.setDate(limiteEstimacion.getDate() + 365)
 
@@ -560,11 +594,19 @@ const busquedaAlimento = ref('')
 const busquedaCategoria = ref('')
 const cargandoDatos = ref(true)
 const errorDatos = ref('')
-const fechaMinima = fechaLocal(hoy)
+const fechaHoy = fechaLocal(hoy)
+const fechaMinimaConsulta = fechaLocal(inicioHistorialEstimacion)
 const fechaMaxima = fechaLocal(limiteEstimacion)
-const fechaEstimacion = ref(fechaMinima)
+const fechaDesdeRuta = String(route.query.fecha || '')
+const fechaEstimacion = ref(
+    fechaDesdeRuta >= fechaMinimaConsulta && fechaDesdeRuta <= fechaMaxima
+        ? fechaDesdeRuta
+        : fechaHoy
+)
 const filasEstimacion = ref([])
 const resumenInsumos = ref([])
+const datosEstimacion = ref({ guardada: false, guardable: true, factible: true, responsable: null, fechaActualizacion: null })
+const cambiosEstimacion = ref(false)
 const cargandoEstimacion = ref(false)
 const guardandoEstimacion = ref(false)
 const errorEstimacion = ref('')
@@ -597,8 +639,21 @@ const alimentosDisponibles = computed(() => alimentos.value.filter(alimento => a
 const pendientesRegularizacion = computed(() => alimentos.value.filter(alimento => alimento.disponible && !alimento.recetaConfigurada).length)
 const totalPorcionesEstimadas = computed(() => filasEstimacion.value
     .reduce((total, fila) => total + Number(fila.porciones || 0), 0))
+const totalProcesadasEstimadas = computed(() => filasEstimacion.value
+    .reduce((total, fila) => total + Number(fila.porcionesProcesadas || 0), 0))
+const totalPendientesEstimadas = computed(() => filasEstimacion.value
+    .reduce((total, fila) => total + Math.max(Number(fila.porciones || 0) - Number(fila.porcionesProcesadas || 0), 0), 0))
 const insumosFaltantes = computed(() => resumenInsumos.value
     .filter(insumo => Number(insumo.faltante || 0) > 0))
+const fechaEsPasada = computed(() => fechaEstimacion.value < fechaHoy)
+const estadoGeneralEstimacion = computed(() => {
+    if (cambiosEstimacion.value) return { texto: 'Por validar', icono: 'bi bi-arrow-repeat' }
+    if (!datosEstimacion.value.guardable) return { texto: 'Regularizar', icono: 'bi bi-wrench-adjustable-circle' }
+    if (insumosFaltantes.value.length) return { texto: 'Requiere compra', icono: 'bi bi-cart-plus' }
+    if (totalPorcionesEstimadas.value > 0 && totalPendientesEstimadas.value === 0) return { texto: 'Meta completada', icono: 'bi bi-check2-all' }
+    if (datosEstimacion.value.guardada) return { texto: 'Lista para operar', icono: 'bi bi-check-circle' }
+    return { texto: 'Sin guardar', icono: 'bi bi-dash-circle' }
+})
 const descripcionTab = computed(() => ({
     alimentos: 'Administra platos, precios, disponibilidad y costos de receta.',
     categorias: 'Organiza el catálogo para que el equipo encuentre cada plato rápidamente.',
@@ -645,6 +700,11 @@ const formatearCantidad = valor => Number(valor || 0).toLocaleString('es-PE', {
     maximumFractionDigits: 4
 })
 
+const fechaHora = valor => valor ? new Date(valor).toLocaleString('es-PE', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+}) : ''
+
 const etiquetaDisponibilidad = alimento => {
     if (alimento.disponibleParaPedidos) return `Disponible · ${alimento.porcionesDisponibles} porciones`
     if (!alimento.disponible) return 'Deshabilitado'
@@ -661,36 +721,74 @@ const payloadEstimacion = () => filasEstimacion.value.map(fila => ({
     porciones: Math.max(0, Math.min(10000, Math.trunc(Number(fila.porciones) || 0)))
 }))
 
-const aplicarEstimacion = respuesta => {
+const aplicarEstimacion = (respuesta, conservarCambios = false) => {
     filasEstimacion.value = (respuesta.platos || []).map(fila => ({ ...fila }))
     resumenInsumos.value = respuesta.insumos || []
+    datosEstimacion.value = {
+        guardada: Boolean(respuesta.guardada),
+        guardable: respuesta.guardable !== false,
+        factible: Boolean(respuesta.factible),
+        responsable: respuesta.responsable || null,
+        fechaActualizacion: respuesta.fechaActualizacion || null
+    }
+    cambiosEstimacion.value = conservarCambios
 }
 
 const marcarPendienteValidacion = () => {
     mensajeEstimacion.value = ''
     resumenInsumos.value = []
+    cambiosEstimacion.value = true
     filasEstimacion.value.forEach(fila => {
-        fila.estado = fila.porciones > 0 ? 'POR_VALIDAR' : 'SIN_PLANIFICAR'
-        fila.detalle = fila.porciones > 0
-            ? 'Valida la estimación para comprobar el inventario.'
-            : 'Define las porciones a preparar.'
+        fila.porcionesPendientes = Math.max(Number(fila.porciones || 0) - Number(fila.porcionesProcesadas || 0), 0)
+        if (!fila.planificable) {
+            fila.estado = 'SIN_RECETA'
+            fila.detalle = 'Plato heredado no planificable: configura una receta válida.'
+        } else if (fila.porciones <= 0 && fila.porcionesProcesadas > 0) {
+            fila.estado = 'SUPERADA'
+            fila.detalle = `Ya se procesaron ${fila.porcionesProcesadas} porciones sin una meta vigente.`
+        } else if (fila.porciones <= 0) {
+            fila.estado = 'SIN_PLANIFICAR'
+            fila.detalle = 'Define las porciones a preparar.'
+        } else if (fila.porcionesPendientes <= 0) {
+            fila.estado = fila.porcionesProcesadas > fila.porciones ? 'SUPERADA' : 'COMPLETADA'
+            fila.detalle = fila.estado === 'SUPERADA' ? 'La operación superó la meta diaria.' : 'La meta diaria ya fue procesada por Cocina.'
+        } else {
+            fila.estado = 'POR_VALIDAR'
+            fila.detalle = 'Valida la estimación para comprobar el inventario pendiente.'
+        }
     })
 }
 
 const normalizarPorciones = fila => {
+    if (!fila.planificable || fechaEsPasada.value) return
     fila.porciones = Math.max(0, Math.min(10000, Math.trunc(Number(fila.porciones) || 0)))
     marcarPendienteValidacion()
 }
 
 const ajustarPorciones = (fila, cambio) => {
+    if (!fila.planificable || fechaEsPasada.value) return
     fila.porciones = Math.max(0, Math.min(10000, Number(fila.porciones || 0) + cambio))
     marcarPendienteValidacion()
+}
+
+const retirarPlatoLegado = fila => {
+    fila.porciones = 0
+    marcarPendienteValidacion()
+}
+
+const porcentajeAvance = fila => {
+    const meta = Number(fila.porciones || 0)
+    const procesadas = Number(fila.porcionesProcesadas || 0)
+    if (meta <= 0) return procesadas > 0 ? 100 : 0
+    return Math.min(100, Math.round((procesadas / meta) * 100))
 }
 
 const etiquetaEstadoEstimacion = fila => ({
     SUFICIENTE: 'Insumos suficientes',
     INSUFICIENTE: 'Insumos insuficientes',
     SIN_RECETA: 'Receta incompleta',
+    COMPLETADA: 'Meta completada',
+    SUPERADA: 'Meta superada',
     SIN_PLANIFICAR: 'Sin planificar',
     POR_VALIDAR: 'Por validar'
 })[fila.estado] || 'Por validar'
@@ -700,6 +798,8 @@ const iconoEstadoEstimacion = fila => ({
     SUFICIENTE: 'bi bi-check-circle-fill',
     INSUFICIENTE: 'bi bi-exclamation-triangle-fill',
     SIN_RECETA: 'bi bi-card-checklist',
+    COMPLETADA: 'bi bi-check2-all',
+    SUPERADA: 'bi bi-graph-up-arrow',
     SIN_PLANIFICAR: 'bi bi-dash-circle',
     POR_VALIDAR: 'bi bi-arrow-repeat'
 })[fila.estado] || 'bi bi-arrow-repeat'
@@ -750,19 +850,25 @@ const cargarEstimacion = async () => {
 }
 
 const validarYGuardarEstimacion = async () => {
+    if (fechaEsPasada.value) return
     guardandoEstimacion.value = true
     errorEstimacion.value = ''
     mensajeEstimacion.value = ''
     try {
         const datos = payloadEstimacion()
         const validacion = await menuService.validarEstimacionDiaria(fechaEstimacion.value, datos)
-        aplicarEstimacion(validacion)
-        if (!validacion.factible) {
-            errorEstimacion.value = 'La estimación no se guardó. Corrige las recetas o repón los insumos indicados.'
+        aplicarEstimacion(validacion, true)
+        if (!validacion.guardable) {
+            errorEstimacion.value = 'La estimación no se guardó. Retira los platos heredados o configura sus recetas.'
             return
         }
-        aplicarEstimacion(await menuService.guardarEstimacionDiaria(fechaEstimacion.value, datos))
-        mensajeEstimacion.value = 'Estimación validada y guardada correctamente.'
+        const guardada = await menuService.guardarEstimacionDiaria(fechaEstimacion.value, datos)
+        aplicarEstimacion(guardada)
+        mensajeEstimacion.value = !guardada.guardada
+            ? 'La planificación quedó sin porciones pendientes para guardar.'
+            : guardada.factible
+            ? 'Estimación validada y guardada. El stock cubre las porciones pendientes.'
+            : 'Estimación guardada con faltantes. Continúa con el abastecimiento indicado.'
     } catch (error) {
         errorEstimacion.value = error.response?.data?.mensaje
             || error.response?.data?.message
@@ -770,6 +876,19 @@ const validarYGuardarEstimacion = async () => {
     } finally {
         guardandoEstimacion.value = false
     }
+}
+
+const abrirReposicion = insumo => {
+    router.push({
+        path: '/abastecimiento',
+        query: {
+            nuevaCompra: '1',
+            idInsumo: String(insumo.idInsumo),
+            cantidad: String(insumo.faltante),
+            origen: 'estimacion',
+            fecha: fechaEstimacion.value
+        }
+    })
 }
 
 // --- Gestión Alimentos ---
@@ -990,6 +1109,15 @@ watch(() => route.query.tab, tab => {
     if (tab === 'estimacion') tabActual.value = 'estimacion'
 })
 
+watch(() => route.query.fecha, fecha => {
+    const nuevaFecha = String(fecha || '')
+    if (nuevaFecha >= fechaMinimaConsulta && nuevaFecha <= fechaMaxima
+        && nuevaFecha !== fechaEstimacion.value) {
+        fechaEstimacion.value = nuevaFecha
+        if (tabActual.value === 'estimacion') cargarEstimacion()
+    }
+})
+
 onMounted(async () => {
     if (!esAlmacenero.value) await cargarDatos()
     if (tabActual.value === 'estimacion') await cargarEstimacion()
@@ -1068,17 +1196,28 @@ body.dark-theme .receta-total strong {
 .estimate-intro-icon { align-items: center; background: #fff; border-radius: 9px; color: var(--rc-primary); display: flex; height: 38px; justify-content: center; width: 38px; }
 .estimate-intro strong { color: var(--rc-ink); display: block; font-size: .9rem; }
 .estimate-intro p { color: var(--rc-muted); font-size: .72rem; margin: .12rem 0 0; }
+.estimate-audit { align-items: center; color: #6c756f; display: flex; font-size: .62rem; gap: .3rem; margin-top: .3rem; }
+.estimate-audit-pending { color: #a56021; }
 .estimate-date { color: var(--rc-ink-soft); display: grid; font-size: .68rem; font-weight: 700; gap: .25rem; }
 .estimate-date input { background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 8px; color: var(--rc-ink); min-height: 38px; padding: .35rem .55rem; }
+.estimate-history { align-items: center; background: var(--rc-info-soft); border: 1px solid #bfdbe8; border-radius: 10px; color: #336879; display: flex; font-size: .72rem; gap: .55rem; margin-bottom: .75rem; padding: .65rem .8rem; }
+.estimate-summary { display: grid; gap: .65rem; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: .8rem; }
+.estimate-summary article { align-items: center; background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 11px; display: flex; gap: .65rem; min-width: 0; padding: .7rem .8rem; }
+.estimate-summary article > i { align-items: center; background: var(--rc-primary-soft); border-radius: 8px; color: var(--rc-primary); display: flex; flex: 0 0 34px; height: 34px; justify-content: center; }
+.estimate-summary article div { display: grid; min-width: 0; }
+.estimate-summary article span { color: var(--rc-muted); font-size: .61rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.estimate-summary article strong { color: var(--rc-ink); font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .estimate-card { background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 13px; box-shadow: var(--rc-shadow-sm); overflow: hidden; }
 .estimate-loading { align-items: center; color: var(--rc-muted); display: flex; gap: .55rem; justify-content: center; min-height: 230px; }
 .estimate-table { table-layout: fixed; width: 100%; }
 .estimate-table th { overflow-wrap: anywhere; white-space: normal; }
-.estimate-table th:nth-child(1) { width: 23%; }
-.estimate-table th:nth-child(2) { width: 17%; }
-.estimate-table th:nth-child(3) { width: 27%; }
-.estimate-table th:nth-child(4) { width: 33%; }
+.estimate-table th:nth-child(1) { width: 20%; }
+.estimate-table th:nth-child(2) { width: 14%; }
+.estimate-table th:nth-child(3) { width: 20%; }
+.estimate-table th:nth-child(4) { width: 17%; }
+.estimate-table th:nth-child(5) { width: 29%; }
 .estimate-table td { vertical-align: middle; }
+.estimate-row-unavailable { background: color-mix(in srgb, var(--rc-danger-soft) 45%, transparent); }
 .estimate-food { align-items: center; display: flex; gap: .65rem; }
 .estimate-food > span { align-items: center; background: #f9ece6; border-radius: 8px; color: var(--rc-primary); display: flex; height: 32px; justify-content: center; width: 32px; }
 .estimate-stepper { align-items: center; display: flex; justify-content: center; }
@@ -1088,15 +1227,26 @@ body.dark-theme .receta-total strong {
 .estimate-stepper button:disabled { color: #b8aaa3; opacity: .65; }
 .estimate-stepper input { appearance: textfield; border: 1px solid #eadbd3; border-left: 0; border-right: 0; color: var(--rc-ink); font-weight: 750; height: 32px; text-align: center; width: 66px; }
 .estimate-stepper input::-webkit-inner-spin-button { appearance: none; }
+.estimate-unavailable { align-items: center; color: var(--rc-danger); display: flex; flex-direction: column; font-size: .62rem; gap: .25rem; }
+.estimate-unavailable button { background: transparent; border: 0; color: var(--rc-primary); font-size: .6rem; font-weight: 750; padding: 0; text-decoration: underline; }
+.estimate-progress { display: grid; gap: .18rem; min-width: 100px; }
+.estimate-progress strong { color: var(--rc-ink); font-size: .75rem; }
+.estimate-progress small { color: var(--rc-muted); font-size: .58rem; }
+.estimate-progress > span { background: var(--rc-border); border-radius: 999px; height: 5px; overflow: hidden; width: 100%; }
+.estimate-progress > span i { background: linear-gradient(90deg, var(--rc-primary), #ef9c73); display: block; height: 100%; transition: width .2s ease; }
 .estimate-status { align-items: center; border-radius: 999px; display: inline-flex; font-size: .66rem; font-weight: 750; gap: .3rem; padding: .3rem .55rem; }
 .estimate-status-suficiente { background: #e5f5ec; color: #267449; }
 .estimate-status-insuficiente { background: #fff0df; color: #ad5d16; }
 .estimate-status-sin_receta { background: #fde8e5; color: #aa4038; }
+.estimate-status-completada { background: #dff4e8; color: #226942; }
+.estimate-status-superada { background: #e8ecfa; color: #435b9b; }
 .estimate-status-sin_planificar, .estimate-status-por_validar { background: #eeeae7; color: #70645e; }
 .estimate-detail { color: var(--rc-muted); display: block; font-size: .62rem; margin-top: .2rem; max-width: 310px; }
 .estimate-shortages, .estimate-success { align-items: flex-start; border-radius: 10px; display: flex; gap: .6rem; margin-top: .75rem; padding: .7rem .85rem; }
 .estimate-shortages { background: #fff3e4; border: 1px solid #f1d2a8; color: #8b541b; }
 .estimate-shortages div { display: grid; font-size: .7rem; gap: .15rem; }
+.estimate-shortages article { align-items: center; border-top: 1px solid #ebd4b5; display: flex; gap: .75rem; justify-content: space-between; margin-top: .3rem; padding-top: .45rem; }
+.estimate-shortages article button { align-items: center; background: #fff; border: 1px solid #dba766; border-radius: 7px; color: #8b541b; display: inline-flex; flex: 0 0 auto; font-size: .62rem; font-weight: 750; gap: .3rem; padding: .35rem .55rem; }
 .estimate-success { background: #e9f6ee; border: 1px solid #bee1cb; color: #2d7149; font-size: .75rem; }
 .estimate-footer { align-items: center; display: flex; justify-content: flex-end; gap: 1rem; padding-top: .85rem; }
 .estimate-footer > div { display: grid; text-align: right; }
@@ -1108,8 +1258,12 @@ body.dark-theme .estimate-intro-icon, body.dark-theme .estimate-food > span { ba
 body.dark-theme .estimate-stepper button, body.dark-theme .estimate-stepper input { background: #333; border-color: #555; color: #f4d2c4; }
 body.dark-theme .estimate-status-sin_planificar, body.dark-theme .estimate-status-por_validar { background: #3b3938; color: #d3cbc7; }
 body.dark-theme .estimate-shortages { background: #3c3023; border-color: #655036; color: #f0c78e; }
+body.dark-theme .estimate-shortages article { border-color: #655036; }
+body.dark-theme .estimate-shortages article button { background: #302a25; border-color: #806344; color: #f0c78e; }
 body.dark-theme .estimate-success { background: #233a2c; border-color: #365c45; color: #a9dbbb; }
+body.dark-theme .estimate-history { background: #26363d; border-color: #3d5965; color: #aed1df; }
 @media (max-width: 1100px) {
+    .estimate-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .estimate-card { background: transparent; border: 0; box-shadow: none; overflow: visible; }
     .estimate-card .table-responsive { overflow: visible; }
     .estimate-table, .estimate-table tbody { display: block; min-width: 0; width: 100%; }
@@ -1126,6 +1280,7 @@ body.dark-theme .estimate-success { background: #233a2c; border-color: #365c45; 
 }
 @media (max-width: 767.98px) {
     .estimate-intro { align-items: stretch; flex-direction: column; }
+    .estimate-summary { grid-template-columns: 1fr; }
     .estimate-card { background: transparent; border: 0; box-shadow: none; overflow: visible; }
     .estimate-table { table-layout: fixed; }
     .estimate-table tbody tr { grid-template-columns: 1fr; }
@@ -1134,6 +1289,8 @@ body.dark-theme .estimate-success { background: #233a2c; border-color: #365c45; 
     .estimate-footer { align-items: stretch; flex-direction: column; }
     .estimate-footer > div { text-align: left; }
     .estimate-footer .btn { justify-content: center; width: 100%; }
+    .estimate-shortages article { align-items: stretch; flex-direction: column; }
+    .estimate-shortages article button { justify-content: center; }
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
