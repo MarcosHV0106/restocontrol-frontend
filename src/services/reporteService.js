@@ -9,3 +9,8 @@ export async function obtenerReporteVentas(desde, hasta) {
     const response = await api.get('/reportes/ventas', { params: { desde, hasta } })
     return response.data
 }
+
+export async function obtenerReporteGerencial(desde, hasta) {
+    const response = await api.get('/reportes/gerencial', { params: { desde, hasta } })
+    return response.data
+}
