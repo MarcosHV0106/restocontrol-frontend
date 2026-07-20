@@ -1,12 +1,12 @@
 <template>
-  <div class="layout">
+  <div class="layout management-layout inventory-layout">
     <SidebarComponent />
 
     <div class="main-content">
       <NavbarComponent />
 
-      <div class="container-fluid p-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="container-fluid p-4 management-page inventory-page">
+        <div class="d-flex justify-content-between align-items-center mb-4 inventory-heading">
           <div>
             <h2 class="fw-bold mb-1">Inventario</h2>
             <p class="text-muted mb-0">Gestión de insumos y lotes del restaurante</p>
@@ -18,9 +18,16 @@
           </button>
         </div>
 
-        <div class="card shadow-sm">
+        <section class="management-summary" aria-label="Resumen de inventario">
+          <article><i class="bi bi-boxes"></i><div><span>Insumos activos</span><strong>{{ insumos.length }}</strong></div></article>
+          <article><i class="bi bi-check-circle"></i><div><span>Stock saludable</span><strong>{{ resumenInventario.saludables }}</strong></div></article>
+          <article><i class="bi bi-exclamation-triangle"></i><div><span>Stock bajo</span><strong>{{ resumenInventario.bajos }}</strong></div></article>
+          <article><i class="bi bi-x-octagon"></i><div><span>Sin stock</span><strong>{{ resumenInventario.agotados }}</strong></div></article>
+        </section>
+
+        <div class="card shadow-sm inventory-card">
           <div class="card-body">
-            <div class="row mb-3">
+            <div class="row mb-3 inventory-toolbar">
               <div class="col-md-4">
                 <input
                   v-model="busqueda"
@@ -32,7 +39,7 @@
             </div>
 
             <div class="table-responsive">
-              <table class="table table-hover align-middle">
+              <table class="table table-hover align-middle inventory-table">
                 <thead class="table-light">
                   <tr>
                     <th>Nombre</th>
@@ -307,8 +314,8 @@
                       type="button"
                       class="btn btn-sm btn-outline-danger"
                       :disabled="lote.estado !== 'ACTIVO' || Number(lote.cantidadActual) <= 0"
-                      title="Retirar como merma"
-                      @click="retirarExistencia(lote)"
+                      title="Registrar salida o ajuste"
+                      @click="abrirAjuste(lote)"
                     >
                       <i class="bi bi-box-arrow-right"></i>
                     </button>
@@ -332,6 +339,37 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div v-if="ajusteSeleccionado" class="inventory-backdrop" @click.self="cerrarAjuste">
+    <section class="inventory-dialog" role="dialog" aria-modal="true" aria-labelledby="adjustment-title">
+      <header>
+        <div>
+          <small>AJUSTE DE INVENTARIO</small>
+          <h2 id="adjustment-title">{{ ajusteSeleccionado.codigo }}</h2>
+          <p>{{ insumoSeleccionado?.nombreInsumo }} · disponible {{ formatearCantidad(ajusteSeleccionado.cantidadActual) }} {{ insumoSeleccionado?.unidadMedida }}</p>
+        </div>
+        <button type="button" aria-label="Cerrar" @click="cerrarAjuste"><i class="bi bi-x-lg"></i></button>
+      </header>
+      <div class="inventory-dialog-body">
+        <label>Tipo de movimiento
+          <select v-model="ajusteForm.tipo">
+            <option value="SALIDA">Salida manual</option>
+            <option value="MERMA">Merma o pérdida</option>
+            <option value="CORRECCION_NEGATIVA">Corrección: disminuir</option>
+            <option value="CORRECCION_POSITIVA">Corrección: aumentar</option>
+          </select>
+        </label>
+        <label>Cantidad<input v-model.number="ajusteForm.cantidad" type="number" min="0.0001" step="0.0001"></label>
+        <label>Motivo<textarea v-model.trim="ajusteForm.motivo" maxlength="150" rows="3" placeholder="Explica por qué se realiza el movimiento"></textarea></label>
+        <label>Referencia opcional<input v-model.trim="ajusteForm.referencia" maxlength="100" placeholder="Acta, área solicitante u observación"></label>
+        <p v-if="errorAjuste" class="inventory-dialog-error">{{ errorAjuste }}</p>
+      </div>
+      <footer>
+        <button type="button" class="btn btn-outline-secondary" :disabled="guardandoLote" @click="cerrarAjuste">Cancelar</button>
+        <button type="button" class="btn btn-primary-custom" :disabled="guardandoLote" @click="registrarAjuste"><span v-if="guardandoLote" class="spinner-border spinner-border-sm"></span>{{ guardandoLote ? 'Registrando...' : 'Registrar movimiento' }}</button>
+      </footer>
+    </section>
   </div>
 
   <div id="editarLoteModal" class="modal fade" tabindex="-1" aria-hidden="true">
@@ -423,12 +461,13 @@ import {
   obtenerInsumos
 } from '@/services/insumoService'
 import {
+  ajustarLote,
   actualizarLote,
   crearLote,
-  obtenerLotes,
-  retirarLote
+  obtenerLotes
 } from '@/services/loteInsumoService'
 import '@/assets/css/insumo.css'
+import '@/assets/css/management.css'
 
 const insumos = ref([])
 const lotes = ref([])
@@ -445,6 +484,9 @@ const fechaHoy = new Date().toISOString().split('T')[0]
 const insumo = ref(insumoVacio())
 const nuevoLote = ref(loteVacio())
 const edicionLote = ref({ idLote: null, codigo: '', fechaVencimiento: '' })
+const ajusteSeleccionado = ref(null)
+const ajusteForm = ref(ajusteVacio())
+const errorAjuste = ref('')
 
 const insumosFiltrados = computed(() => {
   const texto = busqueda.value.trim().toLowerCase()
@@ -454,6 +496,12 @@ const insumosFiltrados = computed(() => {
     String(item.nombreInsumo || '').toLowerCase().includes(texto)
   )
 })
+
+const resumenInventario = computed(() => ({
+  saludables: insumos.value.filter(item => Number(item.stockActual || 0) > Number(item.stockMinimo || 0)).length,
+  bajos: insumos.value.filter(item => Number(item.stockActual || 0) > 0 && Number(item.stockActual || 0) <= Number(item.stockMinimo || 0)).length,
+  agotados: insumos.value.filter(item => Number(item.stockActual || 0) <= 0).length
+}))
 
 onMounted(cargarInsumos)
 
@@ -475,6 +523,10 @@ function loteVacio() {
     fechaVencimiento: '',
     referencia: ''
   }
+}
+
+function ajusteVacio() {
+  return { tipo: 'SALIDA', cantidad: null, motivo: '', referencia: '' }
 }
 
 function mensajeError(error) {
@@ -651,25 +703,40 @@ async function guardarEdicionLote() {
   }
 }
 
-async function retirarExistencia(lote) {
-  const confirmado = confirm(
-    `Se retirarán ${formatearCantidad(lote.cantidadActual)} unidades `
-    + `del lote ${lote.codigo} como merma. ¿Continuar?`
-  )
+function abrirAjuste(lote) {
+  ajusteSeleccionado.value = lote
+  ajusteForm.value = ajusteVacio()
+  errorAjuste.value = ''
+}
 
-  if (!confirmado) return
+function cerrarAjuste() {
+  if (!guardandoLote.value) ajusteSeleccionado.value = null
+}
+
+async function registrarAjuste() {
+  const cantidad = Number(ajusteForm.value.cantidad || 0)
+  if (cantidad <= 0) {
+    errorAjuste.value = 'Ingresa una cantidad mayor a cero.'
+    return
+  }
+  if (!ajusteForm.value.motivo.trim()) {
+    errorAjuste.value = 'El motivo es obligatorio para la trazabilidad.'
+    return
+  }
+  if (ajusteForm.value.tipo !== 'CORRECCION_POSITIVA'
+    && cantidad > Number(ajusteSeleccionado.value.cantidadActual || 0)) {
+    errorAjuste.value = 'La cantidad supera la existencia disponible del lote.'
+    return
+  }
 
   guardandoLote.value = true
-
+  errorAjuste.value = ''
   try {
-    await retirarLote(lote.idLote, {
-      motivo: 'Retiro manual del lote como merma',
-      referencia: 'Inventario'
-    })
-
+    await ajustarLote(ajusteSeleccionado.value.idLote, ajusteForm.value)
+    ajusteSeleccionado.value = null
     await refrescarInventarioYLotes()
   } catch (error) {
-    alert(mensajeError(error))
+    errorAjuste.value = mensajeError(error)
   } finally {
     guardandoLote.value = false
   }

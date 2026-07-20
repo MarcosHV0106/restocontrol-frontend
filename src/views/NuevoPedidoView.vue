@@ -138,8 +138,9 @@
                 <button
                   type="button"
                   class="card h-100 w-100 border-0 shadow-sm food-card text-start"
-                  :class="{ 'food-card-disabled': soloLectura || !!errorCarga }"
-                  :disabled="soloLectura || !!errorCarga"
+                  :class="{ 'food-card-disabled': soloLectura || !!errorCarga || !alimento.disponibleParaPedidos }"
+                  :disabled="soloLectura || !!errorCarga || !alimento.disponibleParaPedidos"
+                  :title="alimento.motivoNoDisponible || ''"
                   @click="agregarAlCarrito(alimento)"
                 >
                   <span class="food-img-placeholder">
@@ -147,6 +148,8 @@
                   </span>
                   <span class="card-body p-3 d-flex flex-column justify-content-between w-100">
                     <span class="fw-bold text-dark mb-1">{{ alimento.nombreAlimento }}</span>
+                    <small v-if="!alimento.disponibleParaPedidos" class="food-availability-note"><i class="bi bi-exclamation-circle"></i>{{ alimento.motivoNoDisponible }}</small>
+                    <small v-else class="food-portions-note">Hasta {{ alimento.porcionesDisponibles }} porciones con el stock actual</small>
                     <span class="text-brand fw-bold mt-2">S/ {{ formatearMonto(alimento.precio) }}</span>
                   </span>
                 </button>
@@ -369,7 +372,7 @@ const cargarDatosBase = async () => {
     ]);
 
     alimentos.value = respuestaAlimentos
-      .filter((alimento) => alimento.disponible && !alimento.eliminado)
+      .filter((alimento) => !alimento.eliminado)
       .map((alimento) => ({ ...alimento, precio: Number(alimento.precio || 0) }));
     categorias.value = [
       { id: 0, nombre: 'Todos' },
@@ -435,9 +438,10 @@ const cargarPedido = async () => {
 };
 
 const agregarAlCarrito = (alimento) => {
-  if (soloLectura.value) return;
+  if (soloLectura.value || !alimento.disponibleParaPedidos) return;
   const existente = carrito.value.find((item) => item.idAlimento === alimento.idAlimento);
   if (existente) {
+    if (existente.cantidad >= Number(alimento.porcionesDisponibles || 0)) return;
     existente.cantidad += 1;
   } else {
     carrito.value.push({
@@ -450,7 +454,9 @@ const agregarAlCarrito = (alimento) => {
 };
 
 const incrementarCantidad = (item) => {
-  if (!soloLectura.value) item.cantidad += 1;
+  const alimento = alimentos.value.find((producto) => producto.idAlimento === item.idAlimento);
+  if (!soloLectura.value && alimento?.disponibleParaPedidos
+    && item.cantidad < Number(alimento.porcionesDisponibles || 0)) item.cantidad += 1;
 };
 
 const reducirCantidad = (item) => {
@@ -749,6 +755,10 @@ onMounted(cargarDatosBase);
 .food-card .card-body { min-height: 80px; padding: .7rem !important; }
 .food-card .card-body > span { font-size: .7rem; }
 .food-card .text-brand { color: var(--rc-primary-hover); }
+.food-availability-note, .food-portions-note { display: block; font-size: .56rem; line-height: 1.25; margin-top: .2rem; }
+.food-availability-note { color: var(--rc-danger); }
+.food-availability-note i { margin-right: .22rem; }
+.food-portions-note { color: var(--rc-muted); }
 .order-panel { background: var(--rc-surface); border-radius: 13px; box-shadow: var(--rc-shadow-sm) !important; overflow: hidden; top: 82px; }
 .order-panel .card-header { background: var(--rc-surface) !important; border-bottom: 1px solid var(--rc-border) !important; padding: .9rem 1rem !important; }
 .order-panel .card-header h5 { color: var(--rc-ink) !important; font-size: .9rem; }

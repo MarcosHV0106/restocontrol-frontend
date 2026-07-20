@@ -21,7 +21,7 @@
                     <article><i class="bi bi-egg-fried"></i><div><span>Platos registrados</span><strong>{{ alimentos.length }}</strong></div></article>
                     <article><i class="bi bi-collection"></i><div><span>Categorías</span><strong>{{ categorias.length }}</strong></div></article>
                     <article><i class="bi bi-check-circle"></i><div><span>Disponibles</span><strong>{{ alimentosDisponibles }}</strong></div></article>
-                    <article><i class="bi bi-card-checklist"></i><div><span>Con costo definido</span><strong>{{ recetasConfiguradas }}</strong></div></article>
+                    <article><i class="bi bi-exclamation-diamond"></i><div><span>Por regularizar</span><strong>{{ pendientesRegularizacion }}</strong></div></article>
                 </section>
 
                 <div v-if="errorDatos" class="management-error alert-danger" role="alert">
@@ -73,7 +73,7 @@
                             <tbody>
                                 <tr v-for="alimento in alimentosFiltrados"
                                     :key="alimento.idAlimento"
-                                    :class="{ 'fila-inactiva': !alimento.disponible }">
+                                    :class="{ 'fila-inactiva': !alimento.disponibleParaPedidos }">
                                     <td data-label="Plato" class="ps-4 py-3 fw-bold">
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="food-icon-box d-flex align-items-center justify-content-center">
@@ -100,8 +100,9 @@
                                     </td>
                                     <td data-label="Estado" class="py-3 text-center">
                                         <span class="badge rounded-pill px-3 py-2"
-                                              :class="alimento.disponible ? 'badge-soft-green' : 'bg-secondary text-white'">
-                                            {{ alimento.disponible ? 'Disponible' : 'No disponible' }}
+                                              :class="claseDisponibilidad(alimento)"
+                                              :title="alimento.motivoNoDisponible || ''">
+                                            {{ etiquetaDisponibilidad(alimento) }}
                                         </span>
                                     </td>
                                     <td data-label="Acciones" class="pe-4 py-3 text-end">
@@ -592,8 +593,8 @@ const nuevaCategoria = ref({
 
 // ================= PROPIEDADES COMPUTADAS =================
 const categoriasActivas = computed(() => categorias.value)
-const alimentosDisponibles = computed(() => alimentos.value.filter(alimento => alimento.disponible).length)
-const recetasConfiguradas = computed(() => alimentos.value.filter(alimento => Number(alimento.costoReceta) > 0).length)
+const alimentosDisponibles = computed(() => alimentos.value.filter(alimento => alimento.disponibleParaPedidos).length)
+const pendientesRegularizacion = computed(() => alimentos.value.filter(alimento => alimento.disponible && !alimento.recetaConfigurada).length)
 const totalPorcionesEstimadas = computed(() => filasEstimacion.value
     .reduce((total, fila) => total + Number(fila.porciones || 0), 0))
 const insumosFaltantes = computed(() => resumenInsumos.value
@@ -643,6 +644,17 @@ const contarAlimentosPorCategoria = (idCategoria) => {
 const formatearCantidad = valor => Number(valor || 0).toLocaleString('es-PE', {
     maximumFractionDigits: 4
 })
+
+const etiquetaDisponibilidad = alimento => {
+    if (alimento.disponibleParaPedidos) return `Disponible · ${alimento.porcionesDisponibles} porciones`
+    if (!alimento.disponible) return 'Deshabilitado'
+    return alimento.recetaConfigurada ? 'Sin stock' : 'Receta pendiente'
+}
+
+const claseDisponibilidad = alimento => {
+    if (alimento.disponibleParaPedidos) return 'badge-soft-green'
+    return alimento.recetaConfigurada ? 'badge-soft-orange' : 'bg-danger-subtle text-danger'
+}
 
 const payloadEstimacion = () => filasEstimacion.value.map(fila => ({
     idAlimento: fila.idAlimento,
