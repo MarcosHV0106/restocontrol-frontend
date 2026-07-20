@@ -24,10 +24,11 @@
 
         <div v-if="mensaje" class="supply-message supply-success" role="status">
           <i class="bi bi-check-circle-fill"></i><span>{{ mensaje }}</span>
-          <button v-if="origenEstimacion" type="button" @click="volverAEstimacion"><i class="bi bi-arrow-return-left"></i>Volver a estimación</button>
+          <button v-if="origenOperacion" type="button" @click="volverAlOrigen"><i class="bi bi-arrow-return-left"></i>{{ textoVolver }}</button>
         </div>
         <div v-if="error" class="supply-message supply-error" role="alert"><i class="bi bi-exclamation-triangle-fill"></i>{{ error }}</div>
         <p v-if="origenEstimacion && !mensaje" class="supply-origin"><i class="bi bi-calendar2-check"></i>Reposición originada por la estimación del {{ fecha(fechaEstimacionOrigen) }}. La cantidad faltante ya está precargada.</p>
+        <p v-if="origenAlerta && !mensaje" class="supply-origin supply-origin-alert"><i class="bi bi-bell"></i>Atención de la alerta #{{ idAlertaOrigen }} por stock bajo de {{ nombreInsumoOrigen || 'un insumo' }}. La compra sugerida ya está precargada y podrás volver a Alertas al terminar.</p>
 
         <div class="tabs-container management-tabs supply-tabs">
           <button type="button" class="btn" :class="{ active: tabActual === 'compras' }" @click="cambiarTab('compras')">Compras y lotes</button>
@@ -192,7 +193,17 @@ let secuenciaLinea = 0
 
 const proveedoresActivos = computed(() => proveedores.value.filter(item => item.activo))
 const origenEstimacion = computed(() => route.query.origen === 'estimacion' && Boolean(route.query.fecha))
+const origenAlerta = computed(() => route.query.origen === 'alerta' && Boolean(route.query.idAlerta))
+const origenOperacion = computed(() => origenEstimacion.value || origenAlerta.value)
 const fechaEstimacionOrigen = computed(() => String(route.query.fecha || ''))
+const idAlertaOrigen = computed(() => String(route.query.idAlerta || ''))
+const nombreInsumoOrigen = computed(() => String(route.query.insumo || ''))
+const textoVolver = computed(() => origenAlerta.value ? 'Volver a alertas' : 'Volver a estimación')
+const queryOrigen = computed(() => {
+  if (origenEstimacion.value) return { origen: 'estimacion', fecha: fechaEstimacionOrigen.value }
+  if (origenAlerta.value) return { origen: 'alerta', idAlerta: idAlertaOrigen.value, insumo: nombreInsumoOrigen.value }
+  return {}
+})
 const lotesRegistrados = computed(() => compras.value.reduce((total, compra) => total + compra.detalles.length, 0))
 const totalCompras = computed(() => compras.value.reduce((total, compra) => total + Number(compra.total || 0), 0))
 const totalFormulario = computed(() => compraForm.detalles.reduce((total, linea) => total + subtotalLinea(linea), 0))
@@ -231,7 +242,7 @@ async function cargarDatos() {
 
 function cambiarTab(tab) {
   tabActual.value = tab
-  router.replace({ path: '/abastecimiento', query: tab === 'proveedores' ? { tab } : {} })
+  router.replace({ path: '/abastecimiento', query: { ...queryOrigen.value, ...(tab === 'proveedores' ? { tab } : {}) } })
 }
 
 function proveedorVacio() { return { idProveedor: null, razonSocial: '', ruc: '', contacto: '', telefono: '', correo: '', direccion: '', activo: true } }
@@ -281,7 +292,9 @@ function abrirCompra(idInsumo = null, cantidadInicial = null) {
   compraForm.idProveedor = proveedoresActivos.value[0]?.idProveedor || null
   compraForm.observacion = origenEstimacion.value
     ? `Reposición para la estimación del ${fechaEstimacionOrigen.value}`
-    : ''
+    : origenAlerta.value
+      ? `Reposición por alerta de inventario #${idAlertaOrigen.value}${nombreInsumoOrigen.value ? ` - ${nombreInsumoOrigen.value}` : ''}`
+      : ''
   compraForm.detalles = [lineaVacia(idInsumo, cantidadInicial)]
   errorModal.value = ''
   modalCompra.value = true
@@ -308,9 +321,7 @@ async function guardarCompra() {
     await cargarDatos()
     await router.replace({
       path: '/abastecimiento',
-      query: origenEstimacion.value
-        ? { origen: 'estimacion', fecha: fechaEstimacionOrigen.value }
-        : {}
+      query: queryOrigen.value
     })
   } catch (err) {
     errorModal.value = mensajeError(err, 'No se pudo registrar la compra.')
@@ -319,7 +330,11 @@ async function guardarCompra() {
   }
 }
 
-function volverAEstimacion() {
+function volverAlOrigen() {
+  if (origenAlerta.value) {
+    router.push({ path: '/alertas-inventario', query: { atendida: idAlertaOrigen.value } })
+    return
+  }
   router.push({ path: '/menu', query: { tab: 'estimacion', fecha: fechaEstimacionOrigen.value } })
 }
 
@@ -351,6 +366,7 @@ function mensajeError(err, alternativo) { return err?.response?.data?.mensaje ||
 .supply-error { background: var(--rc-danger-soft); border-color: #edc4c0; }
 .supply-hint { background: var(--rc-warning-soft); border: 1px solid #ead5aa; border-radius: 9px; color: #8a651f; font-size: .7rem; margin: 0 0 .8rem; padding: .6rem .7rem; }
 .supply-origin { align-items: center; background: var(--rc-info-soft); border: 1px solid #bfdbe8; border-radius: 9px; color: var(--rc-info); display: flex; font-size: .7rem; gap: .45rem; margin: 0 0 .8rem; padding: .6rem .7rem; }
+.supply-origin-alert { background: var(--rc-primary-soft); border-color: #edcfc2; color: var(--rc-primary-hover); }
 .supply-loading { align-items: center; color: var(--rc-muted); display: flex; gap: .5rem; justify-content: center; min-height: 240px; }
 .supply-table td > strong, .supply-table td > small { display: block; }
 .supply-table td > small, .supply-provider small { color: var(--rc-muted); font-size: .6rem; }
@@ -408,6 +424,7 @@ body.dark-theme .supply-table code, body.dark-theme .status-inactive { backgroun
 body.dark-theme .supply-dialog footer, body.dark-theme .purchase-line, body.dark-theme .detail-lines article { background: #29292a; }
 body.dark-theme .supply-hint { background: #3d3525; border-color: #5b4b2e; color: #e2c27e; }
 body.dark-theme .supply-origin { background: #26363d; border-color: #3d5965; color: #aed1df; }
+body.dark-theme .supply-origin-alert { background: #382e29; border-color: #584136; color: #edae91; }
 @media (max-width: 900px) { .purchase-line { grid-template-columns: 26px 1fr 1fr; } .line-product { grid-column: 2 / -1; } .line-subtotal { text-align: left; } .purchase-header-fields { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 650px) { .supply-tabs { max-width: none; } .supply-message { align-items: stretch; flex-wrap: wrap; } .supply-message button { justify-content: center; width: 100%; } .supply-form-grid, .purchase-header-fields { grid-template-columns: 1fr; } .wide { grid-column: auto; } .purchase-line { grid-template-columns: 24px 1fr; } .line-product { grid-column: 2; } .line-subtotal { grid-column: 2; } .line-remove { grid-column: 1; grid-row: 2; } .supply-dialog footer { align-items: stretch; flex-direction: column-reverse; } .supply-dialog footer .btn { width: 100%; } }
 </style>
