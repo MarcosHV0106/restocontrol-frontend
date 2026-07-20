@@ -18,7 +18,7 @@
             </div>
           </div>
           <div class="orders-heading-actions">
-            <button class="orders-refresh" :disabled="cargando" @click="cargarPedidos">
+            <button class="orders-refresh" :disabled="cargando" @click="actualizarOperacion">
               <span v-if="cargando" class="spinner-border spinner-border-sm"></span>
               <i v-else class="bi bi-arrow-clockwise"></i>
               Actualizar
@@ -42,6 +42,11 @@
         </div>
         <div v-if="errorCarga" class="alert alert-danger d-flex align-items-center gap-2" role="alert">
           <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorCarga }}</span>
+        </div>
+        <div v-if="productosBloqueadosCocina.length" class="kitchen-availability-notice" role="status">
+          <span class="notice-icon"><i class="bi bi-megaphone-fill"></i></span>
+          <div><strong>Cocina notificó {{ productosBloqueadosCocina.length }} {{ productosBloqueadosCocina.length === 1 ? 'producto agotado' : 'productos agotados' }}</strong><p>{{ nombresProductosBloqueados }}. No podrán agregarse ni enviarse en nuevas comandas hasta su reactivación.</p></div>
+          <button type="button" @click="cargarDisponibilidadCocina"><i class="bi bi-arrow-clockwise"></i>Actualizar</button>
         </div>
 
         <section class="pedidos-card">
@@ -168,11 +173,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import SidebarComponent from '@/components/SidebarComponent.vue'
 import pedidoService from '@/services/pedidoService'
+import { obtenerAlimentos } from '@/services/menuService'
 import { obtenerMesas } from '@/services/mesaService'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -182,6 +188,7 @@ const authStore = useAuthStore()
 const pedidos = ref([])
 const mesas = ref([])
 const responsables = ref([])
+const productosMenu = ref([])
 const cargando = ref(false)
 const errorCarga = ref('')
 const mensajeExito = ref('')
@@ -192,10 +199,17 @@ const pedidoAccion = ref(null)
 const valorAccion = ref(null)
 const procesandoAccion = ref(false)
 const errorAccion = ref('')
+let sincronizadorDisponibilidad = null
 
 const rolActual = computed(() => String(authStore.usuario?.rol || '').toUpperCase())
 const puedeVerTodos = computed(() => ['ADMIN', 'CAJERO'].includes(rolActual.value))
 const puedeCobrar = computed(() => ['ADMIN', 'CAJERO'].includes(rolActual.value))
+const productosBloqueadosCocina = computed(() => productosMenu.value.filter((producto) => producto.bloqueadoCocina))
+const nombresProductosBloqueados = computed(() => {
+  const nombres = productosBloqueadosCocina.value.map((producto) => producto.nombreAlimento)
+  if (nombres.length <= 3) return nombres.join(', ')
+  return `${nombres.slice(0, 3).join(', ')} y ${nombres.length - 3} más`
+})
 const estadosDisponibles = computed(() => [...new Set(pedidos.value.map((pedido) => pedido.etapaFlujo).filter(Boolean))])
 const resumen = computed(() => ({
   borradores: pedidos.value.filter((pedido) => pedido.etapaFlujo === 'BORRADOR').length,
@@ -262,6 +276,18 @@ async function cargarDatosDeApoyo() {
   responsables.value = responsablesResultado.status === 'fulfilled' ? responsablesResultado.value : []
 }
 
+async function cargarDisponibilidadCocina() {
+  try {
+    productosMenu.value = await obtenerAlimentos()
+  } catch {
+    // La consulta de pedidos sigue operativa aunque el aviso temporal no pueda sincronizarse.
+  }
+}
+
+function actualizarOperacion() {
+  return Promise.all([cargarPedidos(), cargarDisponibilidadCocina()])
+}
+
 function nuevoPedido() {
   router.push({ path: '/nuevo-pedido', query: { origen: 'pedidos' } })
 }
@@ -322,7 +348,7 @@ async function confirmarAccion() {
     mensajeExito.value = mensajes[modalAccion.value]
     procesandoAccion.value = false
     cerrarModal()
-    await Promise.all([cargarPedidos(), cargarDatosDeApoyo()])
+    await Promise.all([cargarPedidos(), cargarDatosDeApoyo(), cargarDisponibilidadCocina()])
   } catch (error) {
     errorAccion.value = mensajeError(error, 'No se pudo completar la acción.')
   } finally {
@@ -394,7 +420,14 @@ function mensajeError(error, alternativo) {
   return error.response?.data?.mensaje || error.response?.data?.message || error.response?.data?.error || alternativo
 }
 
-onMounted(() => Promise.all([cargarPedidos(), cargarDatosDeApoyo()]))
+onMounted(() => {
+  Promise.all([cargarPedidos(), cargarDatosDeApoyo(), cargarDisponibilidadCocina()])
+  sincronizadorDisponibilidad = window.setInterval(() => {
+    if (document.visibilityState === 'visible') cargarDisponibilidadCocina()
+  }, 30000)
+})
+
+onBeforeUnmount(() => window.clearInterval(sincronizadorDisponibilidad))
 </script>
 
 <style scoped>
@@ -433,6 +466,17 @@ onMounted(() => Promise.all([cargarPedidos(), cargarDatosDeApoyo()]))
 .service-cell strong,.service-cell small,.responsible-role { display: block; }
 .service-cell small,.responsible-role { color: var(--rc-muted); font-size: .55rem; margin-top: .08rem; }
 .total-cell { color: var(--rc-ink) !important; font-weight: 780; white-space: nowrap; }
+.kitchen-availability-notice { align-items: center; background: var(--rc-warning-soft); border: 1px solid #e8c9a8; border-radius: 11px; color: var(--rc-ink-soft); display: flex; gap: .7rem; margin-bottom: .8rem; padding: .7rem .8rem; }
+.kitchen-availability-notice .notice-icon { align-items: center; background: #fff3e5; border-radius: 9px; color: #b25a2f; display: flex; flex: 0 0 auto; height: 36px; justify-content: center; width: 36px; }
+.kitchen-availability-notice div { flex: 1; }
+.kitchen-availability-notice strong { color: var(--rc-ink); display: block; font-size: .7rem; }
+.kitchen-availability-notice p { font-size: .61rem; margin: .12rem 0 0; }
+.kitchen-availability-notice button { align-items: center; background: transparent; border: 1px solid #d7ad84; border-radius: 8px; color: #95502d; display: flex; font-size: .61rem; font-weight: 720; gap: .3rem; min-height: 34px; padding: .4rem .55rem; }
+body.dark-theme .kitchen-availability-notice { background: #3b3225; border-color: #715733; color: #e7d8c1; }
+body.dark-theme .kitchen-availability-notice .notice-icon { background: #4d3b24; color: #f0ad72; }
+body.dark-theme .kitchen-availability-notice strong { color: #fff0d8; }
+body.dark-theme .kitchen-availability-notice p { color: #e7d8c1; }
+body.dark-theme .kitchen-availability-notice button { background: #33291f; border-color: #8d6a3d; color: #f0bd82; }
 .flow-badge { border-radius: 999px; display: inline-flex; font-size: .56rem; font-weight: 760; padding: .34rem .5rem; white-space: nowrap; }
 .flow-borrador { background: var(--rc-warning-soft); color: var(--rc-warning); }
 .flow-recibido,.flow-en_preparacion { background: var(--rc-info-soft); color: var(--rc-info); }
@@ -451,6 +495,8 @@ body.dark-theme .orders-table th { background: #333334; color: #c8c0ba; }
 body.dark-theme .orders-filters input,body.dark-theme .orders-filters select { background: #303031; }
 @media (max-width: 991.98px) { .orders-summary { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 767.98px) {
+  .kitchen-availability-notice { align-items: flex-start; flex-wrap: wrap; }
+  .kitchen-availability-notice button { margin-left: 43px; }
   .pedidos-page { padding: 1rem; }
   .orders-heading { align-items: flex-start; flex-direction: column; }
   .orders-heading-actions { width: 100%; }
