@@ -59,6 +59,13 @@
                     </RouterLink>
                 </li>
 
+                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
+                    <RouterLink to="/abastecimiento" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
+                        <i class="bi bi-truck me-3 fs-5"></i>
+                        <span>Abastecimiento</span>
+                    </RouterLink>
+                </li>
+
                 <li class="nav-item" v-if="rolActual === 'ALMACENERO'">
                     <RouterLink :to="{ path: '/menu', query: { tab: 'estimacion' } }"
                         class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">

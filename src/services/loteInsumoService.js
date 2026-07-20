@@ -19,3 +19,8 @@ export async function retirarLote(idLote, datos) {
   const response = await api.post(`/lotes/${idLote}/retirar`, datos)
   return response.data
 }
+
+export async function ajustarLote(idLote, datos) {
+  const response = await api.post(`/lotes/${idLote}/ajustes`, datos)
+  return response.data
+}

@@ -99,12 +99,14 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import SidebarComponent from '@/components/SidebarComponent.vue'
 import { atenderAlerta, obtenerAlertas, obtenerResumenAlertas, sincronizarAlertas } from '@/services/alertaInventarioService'
 import '@/assets/css/alertas-inventario.css'
 
 const alertas = ref([])
+const router = useRouter()
 const resumen = reactive({ activas: 0, revisadas: 0, atendidas: 0 })
 const busqueda = ref('')
 const filtroTipo = ref('')
@@ -168,8 +170,14 @@ async function confirmarAtencion() {
   procesando.value = true
   errorAtencion.value = ''
   try {
+    const abrirReposicion = atencion.accion === 'SOLICITAR_REPOSICION'
+    const idInsumo = alertaSeleccionada.value.idInsumo
     await atenderAlerta(alertaSeleccionada.value.idAlerta, { ...atencion })
     alertaSeleccionada.value = null
+    if (abrirReposicion) {
+      await router.push({ path: '/abastecimiento', query: { nuevaCompra: '1', idInsumo } })
+      return
+    }
     await cargar()
   } catch (err) {
     errorAtencion.value = mensajeError(err, 'No se pudo registrar la atención.')

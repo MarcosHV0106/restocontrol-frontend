@@ -11,7 +11,7 @@
             <span class="management-title-icon"><i class="bi bi-arrow-left-right"></i></span>
             <div>
               <h1>Movimientos de inventario</h1>
-              <p>Trazabilidad de ingresos, mermas y consumos generados por los pedidos.</p>
+              <p>Trazabilidad de compras, salidas, ajustes y consumos generados por los pedidos.</p>
             </div>
           </div>
           <span class="management-count">
@@ -54,6 +54,8 @@
             <option value="INGRESO">Ingreso</option>
             <option value="MERMA">Merma</option>
             <option value="SALIDA">Salida</option>
+            <option value="CORRECCION_POSITIVA">Corrección positiva</option>
+            <option value="CORRECCION_NEGATIVA">Corrección negativa</option>
           </select>
           <button type="button" class="btn btn-brand management-primary" :disabled="cargando" @click="cargarMovimientos">
             <span v-if="cargando" class="spinner-border spinner-border-sm"></span>
@@ -164,8 +166,8 @@ const movimientosFiltrados = computed(() => {
 
 const resumen = computed(() => ({
   consumos: movimientos.value.filter(item => item.tipoMovimiento === 'CONSUMO_PEDIDO').length,
-  ingresos: movimientos.value.filter(item => item.tipoMovimiento === 'INGRESO').length,
-  salidas: movimientos.value.filter(item => ['MERMA', 'SALIDA'].includes(item.tipoMovimiento)).length
+  ingresos: movimientos.value.filter(item => ['INGRESO', 'CORRECCION_POSITIVA'].includes(item.tipoMovimiento)).length,
+  salidas: movimientos.value.filter(item => ['MERMA', 'SALIDA', 'CORRECCION_NEGATIVA'].includes(item.tipoMovimiento)).length
 }))
 
 onMounted(cargarMovimientos)
@@ -190,7 +192,9 @@ function etiquetaTipo(tipo) {
     CONSUMO_PEDIDO: 'Consumo de pedido',
     INGRESO: 'Ingreso',
     MERMA: 'Merma',
-    SALIDA: 'Salida'
+    SALIDA: 'Salida',
+    CORRECCION_POSITIVA: 'Corrección positiva',
+    CORRECCION_NEGATIVA: 'Corrección negativa'
   }[tipo] || tipo
 }
 
@@ -199,7 +203,9 @@ function iconoTipo(tipo) {
     CONSUMO_PEDIDO: 'bi bi-fire',
     INGRESO: 'bi bi-arrow-down-circle',
     MERMA: 'bi bi-exclamation-triangle',
-    SALIDA: 'bi bi-arrow-up-circle'
+    SALIDA: 'bi bi-arrow-up-circle',
+    CORRECCION_POSITIVA: 'bi bi-plus-circle',
+    CORRECCION_NEGATIVA: 'bi bi-dash-circle'
   }[tipo] || 'bi bi-arrow-left-right'
 }
 
@@ -208,7 +214,7 @@ function claseTipo(tipo) {
 }
 
 function esIngreso(tipo) {
-  return tipo === 'INGRESO'
+  return ['INGRESO', 'CORRECCION_POSITIVA'].includes(tipo)
 }
 
 function formatearCantidad(valor) {
@@ -241,6 +247,8 @@ function formatearFecha(valor) {
 .movement-type-consumo_pedido { background: #eaf3f9; color: #397da8; }
 .movement-type-ingreso { background: var(--rc-success-soft); color: var(--rc-success); }
 .movement-type-merma, .movement-type-salida { background: var(--rc-warning-soft); color: #9b6815; }
+.movement-type-correccion_positiva { background: var(--rc-success-soft); color: var(--rc-success); }
+.movement-type-correccion_negativa { background: var(--rc-danger-soft); color: var(--rc-danger); }
 .movement-quantity { color: #a85131; white-space: nowrap; }
 .movement-quantity.positive { color: var(--rc-success); }
 .movements-table code { background: #f3efec; border-radius: 6px; color: #675a53; font-size: .62rem; padding: .22rem .4rem; white-space: nowrap; }
@@ -251,6 +259,8 @@ body.dark-theme .movements-table code { background: #3a3736; color: #dfd2cc; }
 body.dark-theme .movement-type-consumo_pedido { background: #263945; color: #9ac8e4; }
 body.dark-theme .movement-type-ingreso { background: #263b2e; color: #9fd1b0; }
 body.dark-theme .movement-type-merma, body.dark-theme .movement-type-salida { background: #403521; color: #edca8c; }
+body.dark-theme .movement-type-correccion_positiva { background: #263b2e; color: #9fd1b0; }
+body.dark-theme .movement-type-correccion_negativa { background: #432c2b; color: #eca7a2; }
 @media (max-width: 900px) {
   .movements-toolbar { grid-template-columns: 1fr 1fr; }
   .management-search { grid-column: 1 / -1; }

@@ -67,3 +67,39 @@
 @keyframes alertSpin { to { transform: rotate(360deg); } }
 @media (max-width: 1000px) { .alerts-toolbar { grid-template-columns: 1fr 1fr; } .alerts-search { grid-column: 1 / -1; } .alerts-heading { align-items: flex-start; } }
 @media (max-width: 650px) { .alerts-page { padding: 1rem .65rem; } .alerts-heading { flex-direction: column; } .alerts-summary { width: 100%; } .alerts-summary article { flex: 1; } .alerts-toolbar { grid-template-columns: 1fr; } .alerts-search { grid-column: auto; } }
+
+/* Integración con el sistema visual compartido de RestoControl. */
+.alerts-page { background: var(--rc-page); }
+.alerts-title h1 { color: var(--rc-ink); }
+.alerts-title p, .alerts-summary small { color: var(--rc-muted); }
+.alerts-title-icon { background: linear-gradient(135deg, var(--rc-primary), #e88960); }
+.alerts-summary article, .alerts-panel, .alert-modal { background: var(--rc-surface); border-color: var(--rc-border); box-shadow: var(--rc-shadow-xs); }
+.alerts-summary strong { color: var(--rc-primary-hover); }
+.alerts-search, .alerts-search input, .alerts-toolbar select { background: #faf8f6; border-color: var(--rc-border-strong); color: var(--rc-ink-soft); }
+.alerts-refresh, .alert-modal .btn-primary { background: var(--rc-primary); border-color: var(--rc-primary); }
+.alerts-table th { background: #faf7f4; border-color: var(--rc-border); color: var(--rc-muted); }
+.alerts-table td { border-color: var(--rc-border); color: var(--rc-ink-soft); }
+.alerts-table tbody tr:hover { background: #fffaf7; }
+.lot-code { background: #f3efec; color: var(--rc-ink-soft); }
+.alert-modal > header { border-color: var(--rc-border); }
+.alert-modal h2, .action-options legend, .observation-field { color: var(--rc-ink); }
+.alert-context { background: var(--rc-primary-soft); border-color: #edcfc2; }
+.alert-context p, .action-options small { color: var(--rc-muted); }
+.action-options label { border-color: var(--rc-border-strong); }
+.action-options label.selected { background: var(--rc-primary-soft); border-color: var(--rc-primary); }
+.observation-field textarea { background: var(--rc-surface); border-color: var(--rc-border-strong); color: var(--rc-ink); }
+.alert-modal footer { border-top: 1px solid var(--rc-border); }
+body.dark-theme .alerts-search, body.dark-theme .alerts-search input, body.dark-theme .alerts-toolbar select { background: #303031; }
+body.dark-theme .alerts-table th { background: #333334; }
+body.dark-theme .alerts-table tbody tr:hover { background: #302b29; }
+body.dark-theme .lot-code { background: #3a3736; color: #dfd2cc; }
+body.dark-theme .alert-context { background: #382e29; border-color: #584136; }
+body.dark-theme .action-options label { background: #2d2d2e; }
+body.dark-theme .action-options label.selected { background: #3a2d27; border-color: #b85f3d; }
+body.dark-theme .action-options label > span { background: #40342e; }
+body.dark-theme .observation-field textarea { background: #303031; }
+body.dark-theme .alert-modal header button { color: #d8cfca; }
+@media (max-width: 767.98px) {
+  .alerts-panel { background: transparent; border: 0; box-shadow: none; overflow: visible; }
+  .alerts-table { min-width: 850px; }
+}
