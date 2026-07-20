@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { getHomeRouteForRole, normalizeRole } from '@/router/roleNavigation'
 
 import LoginView from '@/views/LoginView.vue'
 import ActivarCuentaView from '@/views/ActivarCuentaView.vue'
@@ -24,15 +25,15 @@ const routes = [
     { path: '/activar-cuenta', redirect: '/login' },
     { path: '/activar-cuenta/:token', name: 'activar-cuenta', component: ActivarCuentaView },
 
-    // Rutas exclusivas para ADMIN
-    { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    // Vistas ejecutivas de solo consulta para administracion y gerencia
+    { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
     { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/movimientos-inventario', name: 'movimientos-inventario', component: MovimientosInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/abastecimiento', name: 'abastecimiento', component: AbastecimientoView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
-    { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
 
     // Ruta exclusiva para el personal de cocina
     { path: '/cocina', name: 'cocina', component: CocinaView, meta: { requiresAuth: true, roles: ['COCINERO'] } },
@@ -68,16 +69,12 @@ router.beforeEach((to) => {
 
     // 2. Si ya está logueado e intenta ir al login -> A su página principal
     if (requiresGuest && isAuthenticated) {
-        const userRole = authStore.usuario?.rol?.toUpperCase()
-        if (userRole === 'ADMIN') return '/dashboard'
-        if (userRole === 'COCINERO') return '/cocina'
-        if (userRole === 'ALMACENERO') return '/alertas-inventario'
-        return userRole === 'CAJERO' ? '/pedidos' : '/mesas'
+        return getHomeRouteForRole(authStore.usuario?.rol)
     }
 
     // 3. VERIFICACIÓN DE ROLES (RBAC)
     if (requiresAuth && isAuthenticated && allowedRoles) {
-        const userRole = authStore.usuario?.rol?.toUpperCase()
+        const userRole = normalizeRole(authStore.usuario?.rol)
 
         // Si el rol del usuario NO está en la lista de roles permitidos de la ruta
         if (!allowedRoles.includes(userRole)) {
@@ -85,18 +82,8 @@ router.beforeEach((to) => {
             // Enviamos una alerta al usuario (opcional, o podrías usar un toast/sweetalert)
             alert('Acceso denegado: No tienes permisos para ver esta sección.')
 
-            // Lo devolvemos a una ruta segura dependiendo de su rol
-            if (userRole === 'MESERO') {
-                return '/mesas'
-            } else if (userRole === 'CAJERO') {
-                return '/pedidos'
-            } else if (userRole === 'COCINERO') {
-                return '/cocina'
-            } else if (userRole === 'ALMACENERO') {
-                return '/alertas-inventario'
-            } else {
-                return '/dashboard'
-            }
+            // Lo devolvemos a la ruta segura definida para su rol.
+            return getHomeRouteForRole(userRole)
         }
     }
 

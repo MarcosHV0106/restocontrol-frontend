@@ -86,6 +86,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { normalizeRole } from '@/router/roleNavigation'
 import '@/assets/css/navbar.css'
 
 const router = useRouter()
@@ -96,7 +97,7 @@ const menuAbierto = ref(false)
 const busquedaActiva = ref(false)
 const busquedaRapida = ref('')
 
-const rolActual = computed(() => String(usuario.value?.rol || '').toUpperCase())
+const rolActual = computed(() => normalizeRole(usuario.value?.rol))
 const nombreRol = computed(() => {
   const rol = String(usuario.value?.rol || 'Usuario').toLowerCase()
   return rol.charAt(0).toUpperCase() + rol.slice(1)
@@ -111,7 +112,7 @@ const fechaActual = computed(() => new Date().toLocaleDateString('es-PE', {
 }))
 
 const navegacion = [
-  { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN'] },
+  { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN', 'GERENTE'] },
   { nombre: 'Estimación diaria', descripcion: 'Demanda prevista y faltantes', ruta: '/menu?tab=estimacion', icono: 'bi bi-calendar2-check', roles: ['ADMIN', 'ALMACENERO'] },
   { nombre: 'Menú y categorías', descripcion: 'Platos, recetas y categorías', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
   { nombre: 'Inventario', descripcion: 'Insumos y lotes', ruta: '/inventario', icono: 'bi bi-box-seam', roles: ['ADMIN', 'ALMACENERO'] },
@@ -123,8 +124,8 @@ const navegacion = [
   { nombre: 'Caja', descripcion: 'Cobros y comprobantes', ruta: '/caja', icono: 'bi bi-wallet2', roles: ['ADMIN', 'CAJERO'] },
   { nombre: 'Cocina', descripcion: 'Flujo de preparación', ruta: '/cocina', icono: 'bi bi-fire', roles: ['COCINERO'] },
   { nombre: 'Usuarios y roles', descripcion: 'Personal y permisos', ruta: '/usuarios', icono: 'bi bi-people', roles: ['ADMIN'] },
-  { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN'] },
-  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'MESERO', 'CAJERO', 'COCINERO', 'ALMACENERO'] },
+  { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN', 'GERENTE'] },
+  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'GERENTE', 'MESERO', 'CAJERO', 'COCINERO', 'ALMACENERO'] },
 ]
 
 const opcionesPermitidas = computed(() => navegacion.filter((opcion) => opcion.roles.includes(rolActual.value)))
