@@ -2,22 +2,23 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { getHomeRouteForRole, normalizeRole } from '@/router/roleNavigation'
 
-import LoginView from '@/views/LoginView.vue'
-import ActivarCuentaView from '@/views/ActivarCuentaView.vue'
-import DashboardView from '@/views/DashboardView.vue'
-import MenuView from '@/views/MenuView.vue'
-import UsuarioView from '@/views/UsuarioView.vue'
-import MesaView from '@/views/MesaView.vue'
-import PedidoView from '@/views/PedidoView.vue'
-import NuevoPedidoView from '@/views/NuevoPedidoView.vue'
-import ConfiguracionView from '@/views/ConfiguracionView.vue'
-import ReporteView from '@/views/ReporteView.vue'
-import CajaView from '@/views/CajaView.vue'
-import CocinaView from '@/views/CocinaView.vue'
-import InventarioView from '@/views/InventarioView.vue'
-import AlertasInventarioView from '@/views/AlertasInventarioView.vue'
-import MovimientosInventarioView from '@/views/MovimientosInventarioView.vue'
-import AbastecimientoView from '@/views/AbastecimientoView.vue'
+const LoginView = () => import('@/views/LoginView.vue')
+const ActivarCuentaView = () => import('@/views/ActivarCuentaView.vue')
+const DashboardView = () => import('@/views/DashboardView.vue')
+const MenuView = () => import('@/views/MenuView.vue')
+const UsuarioView = () => import('@/views/UsuarioView.vue')
+const MesaView = () => import('@/views/MesaView.vue')
+const PedidoView = () => import('@/views/PedidoView.vue')
+const NuevoPedidoView = () => import('@/views/NuevoPedidoView.vue')
+const ConfiguracionView = () => import('@/views/ConfiguracionView.vue')
+const ReporteView = () => import('@/views/ReporteView.vue')
+const CajaView = () => import('@/views/CajaView.vue')
+const CocinaView = () => import('@/views/CocinaView.vue')
+const InventarioView = () => import('@/views/InventarioView.vue')
+const AlertasInventarioView = () => import('@/views/AlertasInventarioView.vue')
+const MovimientosInventarioView = () => import('@/views/MovimientosInventarioView.vue')
+const AbastecimientoView = () => import('@/views/AbastecimientoView.vue')
+const AuditoriaView = () => import('@/views/AuditoriaView.vue')
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -34,6 +35,7 @@ const routes = [
     { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
+    { path: '/auditoria', name: 'auditoria', component: AuditoriaView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
 
     // Ruta exclusiva para el personal de cocina
     { path: '/cocina', name: 'cocina', component: CocinaView, meta: { requiresAuth: true, roles: ['COCINERO'] } },
@@ -48,7 +50,8 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior: () => ({ top: 0 })
 })
 
 // --- NAVIGATION GUARD CON PINIA ---

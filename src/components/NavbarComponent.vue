@@ -125,6 +125,7 @@ const navegacion = [
   { nombre: 'Cocina', descripcion: 'Flujo de preparación', ruta: '/cocina', icono: 'bi bi-fire', roles: ['COCINERO'] },
   { nombre: 'Usuarios y roles', descripcion: 'Personal y permisos', ruta: '/usuarios', icono: 'bi bi-people', roles: ['ADMIN'] },
   { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN', 'GERENTE'] },
+  { nombre: 'Auditoría', descripcion: 'Historial de operaciones por usuario', ruta: '/auditoria', icono: 'bi bi-shield-check', roles: ['ADMIN', 'GERENTE'] },
   { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'GERENTE', 'MESERO', 'CAJERO', 'COCINERO', 'ALMACENERO'] },
 ]
 
