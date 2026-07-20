@@ -22,8 +22,12 @@
           <article><i class="bi bi-cash-stack"></i><div><span>Inversión registrada</span><strong>S/ {{ moneda(totalCompras) }}</strong></div></article>
         </section>
 
-        <div v-if="mensaje" class="supply-message supply-success" role="status"><i class="bi bi-check-circle-fill"></i>{{ mensaje }}</div>
+        <div v-if="mensaje" class="supply-message supply-success" role="status">
+          <i class="bi bi-check-circle-fill"></i><span>{{ mensaje }}</span>
+          <button v-if="origenEstimacion" type="button" @click="volverAEstimacion"><i class="bi bi-arrow-return-left"></i>Volver a estimación</button>
+        </div>
         <div v-if="error" class="supply-message supply-error" role="alert"><i class="bi bi-exclamation-triangle-fill"></i>{{ error }}</div>
+        <p v-if="origenEstimacion && !mensaje" class="supply-origin"><i class="bi bi-calendar2-check"></i>Reposición originada por la estimación del {{ fecha(fechaEstimacionOrigen) }}. La cantidad faltante ya está precargada.</p>
 
         <div class="tabs-container management-tabs supply-tabs">
           <button type="button" class="btn" :class="{ active: tabActual === 'compras' }" @click="cambiarTab('compras')">Compras y lotes</button>
@@ -187,6 +191,8 @@ const hoy = fechaLocal(new Date())
 let secuenciaLinea = 0
 
 const proveedoresActivos = computed(() => proveedores.value.filter(item => item.activo))
+const origenEstimacion = computed(() => route.query.origen === 'estimacion' && Boolean(route.query.fecha))
+const fechaEstimacionOrigen = computed(() => String(route.query.fecha || ''))
 const lotesRegistrados = computed(() => compras.value.reduce((total, compra) => total + compra.detalles.length, 0))
 const totalCompras = computed(() => compras.value.reduce((total, compra) => total + Number(compra.total || 0), 0))
 const totalFormulario = computed(() => compraForm.detalles.reduce((total, linea) => total + subtotalLinea(linea), 0))
@@ -203,7 +209,9 @@ const proveedoresFiltrados = computed(() => {
 
 onMounted(async () => {
   await cargarDatos()
-  if (route.query.nuevaCompra === '1' || route.query.idInsumo) abrirCompra(Number(route.query.idInsumo) || null)
+  if (route.query.nuevaCompra === '1' || route.query.idInsumo) {
+    abrirCompra(Number(route.query.idInsumo) || null, numeroPositivo(route.query.cantidad))
+  }
 })
 
 async function cargarDatos() {
@@ -228,7 +236,7 @@ function cambiarTab(tab) {
 
 function proveedorVacio() { return { idProveedor: null, razonSocial: '', ruc: '', contacto: '', telefono: '', correo: '', direccion: '', activo: true } }
 function compraVacia() { return { idProveedor: null, fechaCompra: fechaLocal(new Date()), numeroDocumento: '', observacion: '', detalles: [] } }
-function lineaVacia(idInsumo = null) { return { clave: ++secuenciaLinea, idInsumo, cantidad: null, costoUnitario: costoInsumo(idInsumo), fechaVencimiento: '' } }
+function lineaVacia(idInsumo = null, cantidadInicial = null) { return { clave: ++secuenciaLinea, idInsumo, cantidad: cantidadInicial, costoUnitario: costoInsumo(idInsumo), fechaVencimiento: '' } }
 
 function abrirProveedor(proveedor = null) {
   Object.assign(proveedorForm, proveedorVacio(), proveedor || {})
@@ -268,10 +276,13 @@ async function cambiarEstadoProveedor(proveedor) {
   }
 }
 
-function abrirCompra(idInsumo = null) {
+function abrirCompra(idInsumo = null, cantidadInicial = null) {
   Object.assign(compraForm, compraVacia())
   compraForm.idProveedor = proveedoresActivos.value[0]?.idProveedor || null
-  compraForm.detalles = [lineaVacia(idInsumo)]
+  compraForm.observacion = origenEstimacion.value
+    ? `Reposición para la estimación del ${fechaEstimacionOrigen.value}`
+    : ''
+  compraForm.detalles = [lineaVacia(idInsumo, cantidadInicial)]
   errorModal.value = ''
   modalCompra.value = true
 }
@@ -295,12 +306,21 @@ async function guardarCompra() {
     modalCompra.value = false
     mensaje.value = 'Compra registrada: los lotes, el stock y las alertas fueron sincronizados.'
     await cargarDatos()
-    await router.replace('/abastecimiento')
+    await router.replace({
+      path: '/abastecimiento',
+      query: origenEstimacion.value
+        ? { origen: 'estimacion', fecha: fechaEstimacionOrigen.value }
+        : {}
+    })
   } catch (err) {
     errorModal.value = mensajeError(err, 'No se pudo registrar la compra.')
   } finally {
     guardando.value = false
   }
+}
+
+function volverAEstimacion() {
+  router.push({ path: '/menu', query: { tab: 'estimacion', fecha: fechaEstimacionOrigen.value } })
 }
 
 function validarCompra() {
@@ -313,6 +333,7 @@ function validarCompra() {
 }
 
 function fechaLocal(valor) { const fecha = new Date(valor); return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}` }
+function numeroPositivo(valor) { const numero = Number(valor); return Number.isFinite(numero) && numero > 0 ? numero : null }
 function fecha(valor) { if (!valor) return '—'; return new Date(`${valor}T00:00:00`).toLocaleDateString('es-PE') }
 function moneda(valor) { return Number(valor || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 function cantidad(valor) { return Number(valor || 0).toLocaleString('es-PE', { maximumFractionDigits: 4 }) }
@@ -323,10 +344,13 @@ function mensajeError(err, alternativo) { return err?.response?.data?.mensaje ||
 .supply-tabs { display: flex; max-width: 410px; }
 .supply-tabs .btn { flex: 1; }
 .supply-message { align-items: center; border: 1px solid; border-radius: 9px; display: flex; font-size: .72rem; gap: .45rem; margin-bottom: .8rem; padding: .65rem .75rem; }
+.supply-message > span { flex: 1; }
+.supply-message button { align-items: center; background: transparent; border: 1px solid currentColor; border-radius: 7px; color: inherit; display: inline-flex; flex: 0 0 auto; font-size: .62rem; font-weight: 750; gap: .3rem; padding: .32rem .5rem; }
 .supply-success { background: var(--rc-success-soft); border-color: #b9dec8; color: var(--rc-success); }
 .supply-error, .supply-modal-error { color: var(--rc-danger); }
 .supply-error { background: var(--rc-danger-soft); border-color: #edc4c0; }
 .supply-hint { background: var(--rc-warning-soft); border: 1px solid #ead5aa; border-radius: 9px; color: #8a651f; font-size: .7rem; margin: 0 0 .8rem; padding: .6rem .7rem; }
+.supply-origin { align-items: center; background: var(--rc-info-soft); border: 1px solid #bfdbe8; border-radius: 9px; color: var(--rc-info); display: flex; font-size: .7rem; gap: .45rem; margin: 0 0 .8rem; padding: .6rem .7rem; }
 .supply-loading { align-items: center; color: var(--rc-muted); display: flex; gap: .5rem; justify-content: center; min-height: 240px; }
 .supply-table td > strong, .supply-table td > small { display: block; }
 .supply-table td > small, .supply-provider small { color: var(--rc-muted); font-size: .6rem; }
@@ -383,6 +407,7 @@ function mensajeError(err, alternativo) { return err?.response?.data?.mensaje ||
 body.dark-theme .supply-table code, body.dark-theme .status-inactive { background: #393635; }
 body.dark-theme .supply-dialog footer, body.dark-theme .purchase-line, body.dark-theme .detail-lines article { background: #29292a; }
 body.dark-theme .supply-hint { background: #3d3525; border-color: #5b4b2e; color: #e2c27e; }
+body.dark-theme .supply-origin { background: #26363d; border-color: #3d5965; color: #aed1df; }
 @media (max-width: 900px) { .purchase-line { grid-template-columns: 26px 1fr 1fr; } .line-product { grid-column: 2 / -1; } .line-subtotal { text-align: left; } .purchase-header-fields { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 650px) { .supply-tabs { max-width: none; } .supply-form-grid, .purchase-header-fields { grid-template-columns: 1fr; } .wide { grid-column: auto; } .purchase-line { grid-template-columns: 24px 1fr; } .line-product { grid-column: 2; } .line-subtotal { grid-column: 2; } .line-remove { grid-column: 1; grid-row: 2; } .supply-dialog footer { align-items: stretch; flex-direction: column-reverse; } .supply-dialog footer .btn { width: 100%; } }
+@media (max-width: 650px) { .supply-tabs { max-width: none; } .supply-message { align-items: stretch; flex-wrap: wrap; } .supply-message button { justify-content: center; width: 100%; } .supply-form-grid, .purchase-header-fields { grid-template-columns: 1fr; } .wide { grid-column: auto; } .purchase-line { grid-template-columns: 24px 1fr; } .line-product { grid-column: 2; } .line-subtotal { grid-column: 2; } .line-remove { grid-column: 1; grid-row: 2; } .supply-dialog footer { align-items: stretch; flex-direction: column-reverse; } .supply-dialog footer .btn { width: 100%; } }
 </style>
