@@ -149,7 +149,7 @@
                   <span class="card-body p-3 d-flex flex-column justify-content-between w-100">
                     <span class="fw-bold text-dark mb-1">{{ alimento.nombreAlimento }}</span>
                     <small v-if="!alimento.disponibleParaPedidos" class="food-availability-note"><i class="bi bi-exclamation-circle"></i>{{ alimento.motivoNoDisponible }}</small>
-                    <small v-else class="food-portions-note">Hasta {{ alimento.porcionesDisponibles }} porciones con el stock actual</small>
+                    <small v-else class="food-portions-note">Hasta {{ alimento.stock }} porciones disponibles</small>
                     <span class="text-brand fw-bold mt-2">S/ {{ formatearMonto(alimento.precio) }}</span>
                   </span>
                 </button>
@@ -441,7 +441,7 @@ const agregarAlCarrito = (alimento) => {
   if (soloLectura.value || !alimento.disponibleParaPedidos) return;
   const existente = carrito.value.find((item) => item.idAlimento === alimento.idAlimento);
   if (existente) {
-    if (existente.cantidad >= Number(alimento.porcionesDisponibles || 0)) return;
+    if (existente.cantidad >= Number(alimento.stock || 0)) return;
     existente.cantidad += 1;
   } else {
     carrito.value.push({
@@ -456,7 +456,7 @@ const agregarAlCarrito = (alimento) => {
 const incrementarCantidad = (item) => {
   const alimento = alimentos.value.find((producto) => producto.idAlimento === item.idAlimento);
   if (!soloLectura.value && alimento?.disponibleParaPedidos
-    && item.cantidad < Number(alimento.porcionesDisponibles || 0)) item.cantidad += 1;
+    && item.cantidad < Number(alimento.stock || 0)) item.cantidad += 1;
 };
 
 const reducirCantidad = (item) => {

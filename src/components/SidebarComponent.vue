@@ -41,46 +41,6 @@
                     </RouterLink>
                 </li>
 
-                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
-                    <RouterLink to="/inventario" class="nav-link custom-link d-flex align-items-center fw-medium"
-                        active-class="active">
-
-                        <i class="bi bi-box-seam me-3 fs-5"></i>
-
-                        <span>Inventario</span>
-
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
-                    <RouterLink to="/movimientos-inventario" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-arrow-left-right me-3 fs-5"></i>
-                        <span>Movimientos</span>
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
-                    <RouterLink to="/abastecimiento" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-truck me-3 fs-5"></i>
-                        <span>Abastecimiento</span>
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item" v-if="rolActual === 'ALMACENERO'">
-                    <RouterLink :to="{ path: '/menu', query: { tab: 'estimacion' } }"
-                        class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-calendar2-check me-3 fs-5"></i>
-                        <span>Estimación diaria</span>
-                    </RouterLink>
-                </li>
-
-                <li class="nav-item" v-if="['ADMIN', 'ALMACENERO'].includes(rolActual)">
-                    <RouterLink to="/alertas-inventario" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
-                        <i class="bi bi-bell me-3 fs-5"></i>
-                        <span>Alertas de Inventario</span>
-                    </RouterLink>
-                </li>
-
                 <li class="nav-item" v-if="['ADMIN', 'MESERO', 'CAJERO'].includes(rolActual)">
                     <RouterLink to="/mesas" class="nav-link custom-link d-flex align-items-center fw-medium" active-class="active">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife me-3 fs-5" viewBox="0 0 16 16">

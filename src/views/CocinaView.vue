@@ -135,9 +135,9 @@
                     <span>{{ pedido.observacion }}</span>
                   </div>
 
-                  <div v-if="pedido.fechaConsumoInventario" class="inventory-consumption">
+                  <div v-if="pedido.fechaDescuentoStock" class="inventory-consumption">
                     <i class="bi bi-box-arrow-up-right"></i>
-                    Insumos descontados a las <strong>{{ hora(pedido.fechaConsumoInventario) }}</strong>
+                    Stock descontado a las <strong>{{ hora(pedido.fechaDescuentoStock) }}</strong>
                   </div>
 
                   <div v-if="pedido.estado !== 'ENTREGADO' && pedido.tiempoEstimadoMinutos" class="preparation-estimate">
@@ -215,7 +215,7 @@
 
         <section v-else-if="seccionActiva === 'DISPONIBILIDAD'" class="kitchen-section availability-section">
           <div class="section-introduction">
-            <div><span>Coordinación con Caja y Salón</span><h2>Disponibilidad temporal del menú</h2><p>Notifica agotados sin modificar la configuración administrativa ni el inventario.</p></div>
+            <div><span>Coordinación con Caja y Salón</span><h2>Disponibilidad temporal del menú</h2><p>Pausa productos agotados sin alterar su stock ni su configuración administrativa.</p></div>
             <div class="availability-counter"><strong>{{ productosBloqueados.length }}</strong><span>agotados notificados</span></div>
           </div>
 
@@ -240,7 +240,7 @@
           </section>
 
           <div v-if="errorProductos" class="alert kitchen-alert alert-danger" role="alert"><i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorProductos }}</span><button type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="cargarProductos()">Reintentar</button></div>
-          <section v-if="cargandoProductos && !productos.length" class="kitchen-loading compact" aria-live="polite"><div class="spinner-border"></div><strong>Consultando el menú</strong><span>Calculando disponibilidad e inventario actual.</span></section>
+          <section v-if="cargandoProductos && !productos.length" class="kitchen-loading compact" aria-live="polite"><div class="spinner-border"></div><strong>Consultando el menú</strong><span>Revisando disponibilidad y stock actual.</span></section>
 
           <section v-else class="availability-grid" aria-label="Disponibilidad de productos">
             <article v-for="producto in productosFiltrados" :key="producto.idAlimento" class="availability-card" :class="{ blocked: producto.bloqueadoCocina, unavailable: !producto.disponibleParaPedidos }">
@@ -250,7 +250,7 @@
                 <span class="availability-badge" :class="estadoProducto(producto).clase">{{ estadoProducto(producto).etiqueta }}</span>
               </header>
               <div class="product-operational-data">
-                <span><i class="bi bi-box-seam"></i><strong>{{ producto.porcionesDisponibles || 0 }}</strong> porciones por inventario</span>
+                <span><i class="bi bi-box-seam"></i><strong>{{ producto.stock || 0 }}</strong> porciones disponibles</span>
                 <span v-if="producto.bloqueadoCocina"><i class="bi bi-person-check"></i>{{ producto.responsableBloqueoCocina || 'Cocina' }}</span>
               </div>
               <p class="availability-reason">{{ producto.motivoNoDisponible || 'Producto operativo y disponible para nuevas comandas.' }}</p>
@@ -371,7 +371,7 @@
         <section class="availability-dialog" role="dialog" aria-modal="true" aria-labelledby="availability-dialog-title" @keydown.esc="cerrarDisponibilidad">
           <header><span class="dialog-product-icon"><i class="bi bi-egg-fried"></i></span><div><small>Disponibilidad temporal</small><h2 id="availability-dialog-title">{{ accionDisponibilidadDisponible ? 'Reactivar producto' : 'Notificar producto agotado' }}</h2><p>{{ productoSeleccionado?.nombreAlimento }}</p></div><button type="button" class="btn-close" aria-label="Cerrar" @click="cerrarDisponibilidad"></button></header>
           <div class="availability-dialog-body">
-            <p v-if="accionDisponibilidadDisponible">Caja y Salón volverán a ver el producto disponible siempre que su receta y su inventario también sean suficientes.</p>
+            <p v-if="accionDisponibilidadDisponible">Caja y Salón volverán a ver el producto siempre que tenga stock disponible.</p>
             <template v-else><p>El producto se bloqueará inmediatamente para nuevas comandas y el aviso será visible para Caja y Salón.</p><label for="motivoDisponibilidad">Motivo del agotado</label><textarea id="motivoDisponibilidad" v-model.trim="motivoDisponibilidad" rows="3" maxlength="200" placeholder="Ej. se agotó la salsa base"></textarea><small>{{ motivoDisponibilidad.length }}/200</small></template>
             <div v-if="errorDisponibilidad" class="dialog-inline-error"><i class="bi bi-exclamation-triangle"></i>{{ errorDisponibilidad }}</div>
           </div>
@@ -644,7 +644,7 @@ function accionPedido(pedido) {
     RECIBIDO: {
       destino: 'EN_PREPARACION',
       etiqueta: 'Iniciar preparación',
-      confirmacion: 'preparación iniciada e inventario actualizado',
+      confirmacion: 'preparación iniciada y stock actualizado',
       icono: 'bi bi-play-fill',
     },
     EN_PREPARACION: {

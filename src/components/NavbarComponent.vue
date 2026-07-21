@@ -113,12 +113,7 @@ const fechaActual = computed(() => new Date().toLocaleDateString('es-PE', {
 
 const navegacion = [
   { nombre: 'Dashboard', descripcion: 'Resumen ejecutivo', ruta: '/dashboard', icono: 'bi bi-grid-1x2', roles: ['ADMIN', 'GERENTE'] },
-  { nombre: 'Estimación diaria', descripcion: 'Demanda prevista y faltantes', ruta: '/menu?tab=estimacion', icono: 'bi bi-calendar2-check', roles: ['ADMIN', 'ALMACENERO'] },
-  { nombre: 'Menú y categorías', descripcion: 'Platos, recetas y categorías', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
-  { nombre: 'Inventario', descripcion: 'Insumos y lotes', ruta: '/inventario', icono: 'bi bi-box-seam', roles: ['ADMIN', 'ALMACENERO'] },
-  { nombre: 'Movimientos de inventario', descripcion: 'Entradas, mermas y consumos', ruta: '/movimientos-inventario', icono: 'bi bi-arrow-left-right', roles: ['ADMIN', 'ALMACENERO'] },
-  { nombre: 'Abastecimiento', descripcion: 'Proveedores, compras y lotes', ruta: '/abastecimiento', icono: 'bi bi-truck', roles: ['ADMIN', 'ALMACENERO'] },
-  { nombre: 'Alertas de inventario', descripcion: 'Stock y vencimientos', ruta: '/alertas-inventario', icono: 'bi bi-bell', roles: ['ADMIN', 'ALMACENERO'] },
+  { nombre: 'Menú y categorías', descripcion: 'Platos, precios y stock', ruta: '/menu', icono: 'bi bi-tags', roles: ['ADMIN'] },
   { nombre: 'Gestión de mesas', descripcion: 'Disponibilidad y atención', ruta: '/mesas', icono: 'bi bi-grid-3x3-gap', roles: ['ADMIN', 'MESERO', 'CAJERO'] },
   { nombre: 'Pedidos', descripcion: 'Órdenes del restaurante', ruta: '/pedidos', icono: 'bi bi-receipt', roles: ['ADMIN', 'MESERO', 'CAJERO'] },
   { nombre: 'Caja', descripcion: 'Cobros y comprobantes', ruta: '/caja', icono: 'bi bi-wallet2', roles: ['ADMIN', 'CAJERO'] },
@@ -126,7 +121,7 @@ const navegacion = [
   { nombre: 'Usuarios y roles', descripcion: 'Personal y permisos', ruta: '/usuarios', icono: 'bi bi-people', roles: ['ADMIN'] },
   { nombre: 'Reportes', descripcion: 'Indicadores operativos', ruta: '/reportes', icono: 'bi bi-bar-chart-line', roles: ['ADMIN', 'GERENTE'] },
   { nombre: 'Auditoría', descripcion: 'Historial de operaciones por usuario', ruta: '/auditoria', icono: 'bi bi-shield-check', roles: ['ADMIN', 'GERENTE'] },
-  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'GERENTE', 'MESERO', 'CAJERO', 'COCINERO', 'ALMACENERO'] },
+  { nombre: 'Configuración', descripcion: 'Seguridad y apariencia', ruta: '/configuracion', icono: 'bi bi-sliders2', roles: ['ADMIN', 'GERENTE', 'MESERO', 'CAJERO', 'COCINERO'] },
 ]
 
 const opcionesPermitidas = computed(() => navegacion.filter((opcion) => opcion.roles.includes(rolActual.value)))

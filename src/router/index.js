@@ -14,10 +14,6 @@ const ConfiguracionView = () => import('@/views/ConfiguracionView.vue')
 const ReporteView = () => import('@/views/ReporteView.vue')
 const CajaView = () => import('@/views/CajaView.vue')
 const CocinaView = () => import('@/views/CocinaView.vue')
-const InventarioView = () => import('@/views/InventarioView.vue')
-const AlertasInventarioView = () => import('@/views/AlertasInventarioView.vue')
-const MovimientosInventarioView = () => import('@/views/MovimientosInventarioView.vue')
-const AbastecimientoView = () => import('@/views/AbastecimientoView.vue')
 const AuditoriaView = () => import('@/views/AuditoriaView.vue')
 
 const routes = [
@@ -28,11 +24,7 @@ const routes = [
 
     // Vistas ejecutivas de solo consulta para administracion y gerencia
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
-    { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
-    { path: '/inventario', name: 'inventario', component: InventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
-    { path: '/movimientos-inventario', name: 'movimientos-inventario', component: MovimientosInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
-    { path: '/abastecimiento', name: 'abastecimiento', component: AbastecimientoView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
-    { path: '/alertas-inventario', name: 'alertas-inventario', component: AlertasInventarioView, meta: { requiresAuth: true, roles: ['ADMIN', 'ALMACENERO'] } },
+    { path: '/menu', name: 'menu', component: MenuView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/usuarios', name: 'usuarios', component: UsuarioView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/reportes', name: 'reportes', component: ReporteView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },
     { path: '/auditoria', name: 'auditoria', component: AuditoriaView, meta: { requiresAuth: true, roles: ['ADMIN', 'GERENTE'] } },

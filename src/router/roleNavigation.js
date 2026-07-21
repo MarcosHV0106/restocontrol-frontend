@@ -4,7 +4,6 @@ const HOME_ROUTE_BY_ROLE = Object.freeze({
   MESERO: '/mesas',
   CAJERO: '/pedidos',
   COCINERO: '/cocina',
-  ALMACENERO: '/alertas-inventario',
 })
 
 export function normalizeRole(role) {
